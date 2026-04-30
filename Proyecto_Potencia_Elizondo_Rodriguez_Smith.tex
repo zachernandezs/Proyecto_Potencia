@@ -6,7 +6,18 @@
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
-\usepackage[spanish]{babel}
+
+\usepackage[spanish, es-tabla]{babel}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{url}
+\usepackage{hyperref}
+
+\usepackage{caption}
+\captionsetup[table]{labelfont=bf, labelsep=newline, justification=centering}
+
+
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
@@ -46,11 +57,51 @@ component, formatting, style, styling, insert
 \end{IEEEkeywords}
 
 \section{Introducción}
-This document is a model and instructions for \LaTeX.
-Please observe the conference page limits. 
-El convertidor Boost es ampliamente utilizado en aplicaciones de energía renovable \cite{b1}.
+
+....
 
 \section{Especificaciones del sistema de potencia}
+
+El convertidor Boost a diseñar, debe de cumplir con las siguientes especificaciones
+de funcionamiento.
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabularx}{\columnwidth}{
+        >{\hsize=1.5\hsize}X 
+        >{\hsize=0.8\hsize}X
+    }
+        \toprule
+        Parámetro                       & Rango  \\
+        \midrule
+        $V_{in}~[\mathrm{V}]$           & $8 - 12$  \\
+        $V_{out}~[V]$                   & $24 \pm 5\%$   \\
+        $P_{out}~\mathrm{[W]}$          & $> 5$    \\
+        $\Delta V_{out}~[\mathrm{V}]$   & $< 5 \%$     \\
+        $f_{sw}~\mathrm{[kHz]}$         & $> 20$  \\
+        $f_{control}~\mathrm{[kHz]}$    & $> 100$   \\
+        \bottomrule
+    \end{tabularx}
+    \vspace{4pt}
+    \caption{Parametros de diseño para el convertidor Boost.}
+    \label{tab:parametros_Boost}
+\end{table}
+
+Como se observa en la Tabla \ref{tab:parametros_Boost}, el convertidor debe de operar
+bajo una entrada de tensión variable que ronda el rango especificado. Lo cual implica que el ciclo
+de trabajo debe de variar para poder mantener la tensión de salida constante en $24~\mathrm{V}$.
+
+Adicionalmente, ya que se desea que la potencia nominal de salida cumpla con un límite mínimo, y considerando
+que la tensión de salida es fija. Es posible deducir la carga máxima que puede soportar el convertidor, de manera
+que su potencia de salida se mantenga en el rango establecido. 
+
+Para que el circuito se mantenga estable en todo momento y cumpla con los requerimientos, este debe de operar
+en modo de corriente continua. Esto implica que la corriente en el inductor no debe de llegar al límite 
+de cero en ningún momento; para esto, es necesario calcular adecuadamente el valor del inductor, que cumpla con esto
+para todo el rango posible del ciclo de trabajo del convertidor \cite{hart2011power}.
+
+
 
 \subsection{Maintaining the Integrity of the Specifications}
 
