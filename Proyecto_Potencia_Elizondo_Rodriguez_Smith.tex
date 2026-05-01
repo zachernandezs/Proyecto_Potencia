@@ -102,15 +102,129 @@ de cero en ningún momento; para esto, es necesario calcular adecuadamente el va
 para todo el rango posible del ciclo de trabajo del convertidor \cite{hart2011power}.
 
 
-
-\subsection{Maintaining the Integrity of the Specifications}
-
-
 \section{Diseño del convertidor Boost}
 
 \subsection{Análisis en base al punto de operación}
+La relación entre la entrada y la salida en un convertidor Boost, está dada
+por la siguiente ecuación \cite{hart2011power}.
+
+\begin{equation}
+    V_{out} = \frac{V_{in}}{1 - D}
+\end{equation}
+
+Considerando que la tensión de salida es fija, el rango de valores para el ciclo de 
+trabajo según el rango de tensión de entrada, es el siguiente.
+
+
+\begin{equation}
+\begin{aligned}
+D &= 1 - \frac{V_{in}}{V_{out}} \\
+    D_{min} &= \left( 1 - \frac{12}{24} \right) \cdot 100 = 50\% \\
+    D_{max} &= \left( 1 - \frac{8}{24} \right) \cdot 100 \simeq 66.67\%
+\end{aligned}
+\label{eq:rango_D}
+\end{equation}
+
+En cuanto a la carga, según la potencia mínima que debe de entregar el convertidor 
+y la tensión de salida, es posible definir el valor máximo de la resistencia de carga.
+
+\begin{equation}
+\begin{aligned}
+    R_{L~max} &= \frac{V_{out}^2}{P_{out}} = 115.2~\Omega
+\end{aligned}
+\label{eq:max_RL}
+\end{equation}
+
+Con este valor de referencia, un valor de resistencia comercial que sea menor a este
+es adecuado para cumplir con el requerimiento de potencia. El cual puede fijarse
+en unos $100~\Omega$ para el diseño del convertidor.
+
+Con esto, el valor de corriente nominal (CD) por la carga, es el siguiente. 
+
+\begin{equation}
+\begin{aligned}
+    I_{nominal} &= \frac{V_{out}}{R_{L}} = \frac{24}{100} = 240~\mathrm{mA}
+\end{aligned}
+\label{eq:corriente_nominal}
+\end{equation}
 
 \subsection{Cálculo del inductor}
+Como se mencionó anteriormente, el inductor debe de ser dimensionado de forma
+que el convertidor opere en modo de corriente continua para todo el rango de
+ciclo de trabajo. El valor mínimo de inductancia para operar en corriente
+continua, está establecido por \cite{hart2011power}.
+
+\begin{equation}
+\begin{aligned}
+    L_{min} &= \frac{D \cdot (1 - D)^2 \cdot R}{2f_{sw}}
+\end{aligned}
+\label{eq:inductancia_minima}
+\end{equation}
+
+Para saber cuál ciclo de trabajo es el que representa el peor de los casos, se debe de conocer
+el valor de corriente mínima en el inductor, para cada valor de D. Este valor de corriente, está
+dado según la siguiente ecuación.
+
+\begin{equation}
+\begin{aligned}
+    I_{L~min} &= I_L - \frac{\Delta i_{L}}{2}
+\end{aligned}
+\label{eq:IL_min}
+\end{equation}
+
+A partir de la ley fundamental del inductor se tiene que la variación de corriente es.
+
+\begin{equation}
+\begin{aligned}
+    \Delta i_{L} &= \frac{V_{s} \cdot D}{L \cdot f_{sw}}
+\end{aligned}
+\label{eq:delta_IL}
+\end{equation}
+
+Y por medio de la relación de potencia de entrada y salida, la corriente promedio
+en el inductor se puede expresar como.
+
+\begin{equation}
+\begin{aligned}
+    I_L &= \frac{V_o^2}{V_s \cdot R}
+\end{aligned}
+\label{eq:prom_IL}
+\end{equation}
+
+Entonces, para un ciclo de trabajo del 50 \%.
+
+\begin{equation}
+\begin{aligned}
+    I_{L~min~50 \%} &= 0.48 - \frac{6}{fL}
+\end{aligned}
+\label{eq:IL_min_0.5}
+\end{equation}
+
+Mientras que para un ciclo de trabajo del 66.67 \%.
+
+\begin{equation}
+\begin{aligned}
+    I_{L~min~66.7 \%} &= 0.72 - \frac{5.336}{fL}
+\end{aligned}
+\label{eq:IL_min_0.667}
+\end{equation}
+
+Lo anterior deja en evidencia que para valores iguales de inductancia y frecuencia de
+conmutación, la relación de la ecuación \ref{eq:IL_min_0.667} es mayor que la de la ecuación \ref{eq:IL_min_0.5}, 
+lo cual implica que el peor escenario de corriente está con un ciclo de trabajo del 50 \%. Aplicando
+entonces la ecuación \ref{eq:inductancia_minima}, el valor mínimo de inductancia necesario
+para operar en modo de corriente continua, queda definido por.
+
+\begin{equation}
+\begin{aligned}
+    L_{min} &= \frac{6.25}{f_{sw}}
+\end{aligned}
+\label{eq:inductancia_minima_num}
+\end{equation}
+
+
+
+
 
 \subsection{Cálculo del capacitor}
 
