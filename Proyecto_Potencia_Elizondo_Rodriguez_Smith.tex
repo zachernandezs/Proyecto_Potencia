@@ -195,7 +195,7 @@ Entonces, para un ciclo de trabajo del 50 \%.
 
 \begin{equation}
 \begin{aligned}
-    I_{L~min~50 \%} &= 0.48 - \frac{6}{fL}
+    I_{L~min~50 \%} &= 0.48 - \frac{3}{fL}
 \end{aligned}
 \label{eq:IL_min_0.5}
 \end{equation}
@@ -204,7 +204,7 @@ Mientras que para un ciclo de trabajo del 66.67 \%.
 
 \begin{equation}
 \begin{aligned}
-    I_{L~min~66.7 \%} &= 0.72 - \frac{5.336}{fL}
+    I_{L~min~66.7 \%} &= 0.72 - \frac{2.668}{fL}
 \end{aligned}
 \label{eq:IL_min_0.667}
 \end{equation}
@@ -223,12 +223,122 @@ para operar en modo de corriente continua, queda definido por.
 \end{equation}
 
 
-
-
-
 \subsection{Cálculo del capacitor}
+En el convertidor Boost, la capacitancia es la que define el porcentaje de rizado
+en la tensión de salida. Según la Tabla \ref{tab:parametros_Boost}, el rizado máximo permitido debe se menor
+al 5 \%, lo cual se traduce a un límite de variación de $\pm 1.2~\mathrm{V}$ en la tensión de salida.
+
+El valor mínimo del capacitor se define por medio de la siguiente ecuación \cite{hart2011power}:
+
+\begin{equation}
+\begin{aligned}
+     \Delta V_{out} &=  \frac{D}{R\cdot C\cdot f_{sw}} \cdot V_{out} \\
+    C_{min}         &= \frac{D}{R \cdot f_{sw} \cdot \frac{\Delta V_{out}}{V_{out}}} \\
+\end{aligned}
+\label{eq:capacitancia_minima}
+\end{equation}
+
+Nuevamente, como el ciclo de trabajo es variable y se conocen sus rangos de posibles valores para esta aplicación, 
+hay que calcular la capacitancia en base al peor de los escenarios, que para este caso es fácil de visualizar que ocurre
+cuando el ciclo de trabajo es del 66.67 \%, ya que el rizado es directamente proporcional a este valor. 
+
+\begin{equation}
+\begin{aligned}
+    C_{min} &= \frac{0.6667}{100 \cdot f_{sw} \cdot 0.05} = \frac{0.6667}{5 \cdot f_{sw}} \\
+\end{aligned}
+\label{eq:capacitancia_minima_num}
+\end{equation}
+
 
 \subsection{Selección de los semiconductores}
+Para esta aplicación, se requiere de un transistor y un diodo. Que cumplan con los requerimientos
+según las condiciones de operación del convertidor.
+
+Como bases a considerar, el transistor debe de soportar una cierta tensión $V_{DS}$ como mínimo. En
+este caso corresponde al máximo valor de tensión que verá el transistor entre sus terminales, definido
+según lo siguiente.
+
+\begin{equation}
+\begin{aligned}
+    V_{DS,max} &= V_{out} = 24 ~\mathrm{V} \\
+\end{aligned}
+\label{eq:VDS_max}
+\end{equation}
+
+Además debe de poder soportar cierta cantidad de corriente, que corresponde a la máxima corriente que 
+conducirá. Para efectos del Boost, este valor de corriente corresponde al valor máximo de corriente que
+llega a circular por el inductor, aplicado para el caso crítico con un ciclo de trabajo del 66.67 \%.
+
+
+\begin{equation}
+\begin{aligned}
+    I_{DS~max,~66.7 \%} &= I_{L~max,~66.7 \%} = 0.72 + \frac{\Delta i_{L}}{2} \\
+            I_{L~max,~66.7 \%}  &= 0.72 + \frac{2.668}{f_{sw} \cdot L} \\
+\end{aligned}
+\label{eq:IL_max}
+\end{equation}
+
+Los transistores investigados para esta aplicación, son el IRLZ44N de Infineon \cite{IRLZ44N_Infineon}, ....
+
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabularx}{\columnwidth}{
+        >{\hsize=1.3\hsize}X 
+        >{\hsize=0.70\hsize}X 
+        >{\hsize=0.75\hsize}X 
+        >{\hsize=0.75\hsize}X
+    }
+        \toprule
+        Parámetro                                   & IRLZ44N & ---- & ---- \\
+        \midrule
+        $V_{DS,max}~\mathrm{[V]}$                   & $55$  & $-$     & $-$     \\
+        $I_{D}~@~25^\circ\mathrm{C}~\mathrm{[A]}$   & $47$  & $-$    & $-$      \\
+        $R_{DS(on)}~\mathrm{[m\Omega]}$             & $22$  & $-$    & $-$     \\
+        $Q_{g}~\mathrm{[nC]}$                       & $48$  & $-$    & $-$      \\
+        $R_{\theta JC}~[^\circ\mathrm{C/W}]$        & $1.4$ & $-$    & $-$    \\
+        $P_{D, max}~\mathrm{[W]}$                   & $110$ & $-$    & $-$     \\
+        $t_{r}~\mathrm{[ns]}$                       & $84$  & $-$    & $-$      \\
+        $t_{f}~\mathrm{[ns]}$                       & $15$  & $-$    & $-$       \\
+
+        \bottomrule
+    \end{tabularx}
+    \caption{Características de los transistores MOSFET}
+    \label{tab:mosfet_comparison}
+\end{table}
+
+
+En cuanto al diodo, este también debe de cumplir con ciertos requerimientos mínimos. Bloqueando
+en inversa la misma tensión $V_{o}$ y soportar la máxima corriente que circula por el inductor. 
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabularx}{\columnwidth}{
+        >{\hsize=1.3\hsize}X 
+        >{\hsize=0.70\hsize}X 
+        >{\hsize=0.75\hsize}X 
+        >{\hsize=0.75\hsize}X
+    }
+        \toprule
+        Parámetro                                   & ---- & ---- & ---- \\
+        \midrule
+        $V_{RRM}~\mathrm{[V]}$                          & $-$ & $-$     & $-$     \\
+        $I_{F(AV)}~@~25^\circ\mathrm{C}~\mathrm{[A]}$   & $-$  & $-$    & $-$      \\
+        $V_F$ @ $I_F$ [V]                               & $-$  & $-$    & $-$     \\
+        $t_{rr}$ [ns]                                   & $-$  & $-$    & $-$      \\
+        $Q_{rr}$ [nC]                                   & $-$  & $-$    & $-$    \\
+        Tipo de recuperación                            & $-$  & $-$    & $-$     \\
+        $R_{\theta JC}$ [$^\circ$C/W]                   & $-$  & $-$    & $-$      \\
+
+        \bottomrule
+    \end{tabularx}
+    \caption{Características de los diodos}
+    \label{tab:diodo_comparison}
+\end{table}
+
+
 
 \subsection{Análisis de pérdidas y eficiencia}
 
