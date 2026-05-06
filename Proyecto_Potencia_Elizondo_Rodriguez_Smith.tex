@@ -321,7 +321,7 @@ estas pérdidas, ante una corriente circulando por el semiconductor.
 \setlength{\parskip}{1em}
 
 En cuanto al diodo, este también debe de cumplir con ciertos requerimientos mínimos. Bloqueando
-en inversa la misma tensión $V_{o}$ y soportar la máxima corriente que circula por el inductor. Se tiene el FSF10A40 y el ...
+en inversa la misma tensión $V_{o}$ y soportar la máxima corriente que circula por el inductor. Se tiene el FSF10A40 y el BYC30-600P, ambos diodos capaces de soportar mucho más que 24 V y la corriente del inductor. Por su menor tiempo de recuperación, mayor corriente de polarización directa promedio y mayor tensión de ruptura, se selecciona el diodo BYC30-600P para este circuito.
 
 \begin{table}[H]
     \centering
@@ -333,15 +333,15 @@ en inversa la misma tensión $V_{o}$ y soportar la máxima corriente que circula
         >{\hsize=0.75\hsize}X
     }
         \toprule
-        Parámetro                                        & FSF10A40 & ---- & ---- \\
+        Parámetro                                        & FSF10A40 & BYC30-600P \\
         \midrule
-        $V_{RRM}~\mathrm{[V]}$                           & $400$  & $-$ & $-$ \\
-        $I_{F(AV)}~@~T_C=95^\circ\mathrm{C}~\mathrm{[A]}$ & $10$ & $-$ & $-$ \\
-        $V_F$ @ $I_F=10\,\mathrm{A}$ [V]                & $1.30$ & $-$ & $-$ \\
-        $t_{rr}$ [ns]                                    & $45$   & $-$ & $-$ \\
-        $Q_{rr}$ [nC]                                    & $\approx 10.8$ & $-$ & $-$ \\
-        Tipo de recuperación                             & Ultra-rápida (FRD) & $-$ & $-$ \\
-        $R_{\theta JC}~[^\circ\mathrm{C/W}]$             & $4$    & $-$ & $-$ \\
+        $V_{RRM}~\mathrm{[V]}$                           & $400$  & $600$ \\
+        $I_{F(AV)}~@~T_C=95^\circ\mathrm{C}~\mathrm{[A]}$ & $10$ & $30$ \\
+        $V_F$ [V] & $1.30 \;@\:I_F$ & $1.38\;@\:I_F$ \\
+        $t_{rr}$ [ns]                                    & $45$   & $35$ \\
+        $Q_{rr}$ [nC]                                    & $\approx 10.8$ & $50$ \\
+        Tipo de recuperación                             & Ultra-rápida (FRD) & Hiper-rápida (Hyperfast)\\
+        $R_{\theta JC}~[^\circ\mathrm{C/W}]$             & $4$    & $1.2$\\
         \bottomrule
     \end{tabularx}
     \caption{Características de los diodos}
