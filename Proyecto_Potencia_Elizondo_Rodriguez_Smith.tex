@@ -11,8 +11,7 @@
 \usepackage{float}
 \usepackage{booktabs}
 \usepackage{tabularx}
-\usepackage{url}
-\usepackage{hyperref}
+\usepackage[hidelinks]{hyperref}
 
 \usepackage{caption}
 \captionsetup[table]{labelfont=bf, labelsep=newline, justification=centering}
@@ -278,7 +277,8 @@ llega a circular por el inductor, aplicado para el caso crítico con un ciclo de
 \label{eq:IL_max}
 \end{equation}
 
-Los transistores investigados para esta aplicación, son el IRLZ44N de Infineon \cite{IRLZ44N_Infineon}, el IRF530 de Vishay \cite{IRF530_Vishay} y ....
+Los transistores investigados para esta aplicación, son el IRF1010 de Infineon \cite{IRF1010EZ_Infineon} y el IRF3205 igualmente
+de Infineon \cite{IRF3205_Infineon}.
 
 
 \begin{table}[H]
@@ -291,16 +291,16 @@ Los transistores investigados para esta aplicación, son el IRLZ44N de Infineon 
         >{\hsize=0.75\hsize}X
     }
         \toprule
-        Parámetro                                   & IRLZ44N & IRF530 & ---- \\
+        Parámetro                                               & IRF1010 & IRF3205\\
         \midrule
-        $V_{DS,max}~\mathrm{[V]}$                   & $55$  & $100$     & $-$     \\
-        $I_{D}~@~25^\circ\mathrm{C}~\mathrm{[A]}$   & $47$  & $14$    & $-$      \\
-        $R_{DS(on)}~\mathrm{[m\Omega]}$             & $22$  & $160$    & $-$     \\
-        $Q_{g}~\mathrm{[nC]}$                       & $48$  & $26$    & $-$      \\
-        $R_{\theta JC}~[^\circ\mathrm{C/W}]$        & $1.4$ & $1.7$    & $-$    \\
-        $P_{D, max}~\mathrm{[W]}$                   & $110$ & $88$    & $-$     \\
-        $t_{r}~\mathrm{[ns]}$                       & $84$  & $34$    & $-$      \\
-        $t_{f}~\mathrm{[ns]}$                       & $15$  & $24$    & $-$       \\
+        $V_{DS,max}~\mathrm{[V]}$                               & $60$   & $55$   \\
+        $I_{D}~@~25^\circ\mathrm{C}~\mathrm{[A]}$               & $75$   & $110$  \\
+        $R_{DS(on)}~@~25^\circ\mathrm{C}~\mathrm{[m\Omega]}$    & $8.5$  & $8.0$  \\
+        $Q_{g}~\mathrm{[nC]}$                                   & $58$   & $146$  \\
+        $R_{\theta JC}~[^\circ\mathrm{C/W}]$                    & $1.11$ & $0.75$ \\
+        $P_{D, max}~\mathrm{[W]}$                               & $140$  & $200$  \\
+        $t_{r}~\mathrm{[ns]}$                                   & $90$   & $101$  \\
+        $t_{f}~\mathrm{[ns]}$                                   & $54$   & $66$   \\
 
         \bottomrule
     \end{tabularx}
@@ -308,6 +308,17 @@ Los transistores investigados para esta aplicación, son el IRLZ44N de Infineon 
     \label{tab:mosfet_comparison}
 \end{table}
 
+Ambos transistores mostrados en la Tabla \ref{tab:mosfet_comparison}, se encuentran disponibles en el mercado local y sus precios
+son iguales en ambos casos (aproximadamente $\mathrm{\$}~1.8 + \mathrm{IVA}$ por unidad). 
+
+Los dos tienen un rango de tensiones y corrientes máximas adecuado, que posteriormente se verificarán por medio de las fórmulas propuestas 
+y la simulación, según la frecuencia de conmutación seleccionada. Para esta aplicación, se seleccionará el IRF1010, debido a que su 
+límite de tensión máxima entre sus términales es mayor; además, según sus tiempos de encendido y apagado, así como el valor de su carga total
+de compuerta, es de esperar que presente menores pérdidas por conmutación, lo que sería adecuado si se quisiera subir la frecuencia de conmutación del convertidor. En cuanto
+a las pérdidas por conducción, ambos dispositivos tienen resistencias de encendido bastante bajas, que según la aplicación podrían hacerse despreciables
+estas pérdidas, ante una corriente circulando por el semiconductor. 
+
+\setlength{\parskip}{1em}
 
 En cuanto al diodo, este también debe de cumplir con ciertos requerimientos mínimos. Bloqueando
 en inversa la misma tensión $V_{o}$ y soportar la máxima corriente que circula por el inductor. 

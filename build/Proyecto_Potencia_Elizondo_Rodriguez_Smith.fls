@@ -112,8 +112,6 @@ INPUT C:\Users\pablo\AppData\Local\Programs\MiKTeX\tex\latex\tools\tabularx.sty
 INPUT C:\Users\pablo\AppData\Local\Programs\MiKTeX\tex\latex\tools\tabularx.sty
 INPUT C:\Users\pablo\AppData\Local\Programs\MiKTeX\tex\latex\tools\array.sty
 INPUT C:\Users\pablo\AppData\Local\Programs\MiKTeX\tex\latex\tools\array.sty
-INPUT C:\Users\pablo\AppData\Local\Programs\MiKTeX\tex\latex\url\url.sty
-INPUT C:\Users\pablo\AppData\Local\Programs\MiKTeX\tex\latex\url\url.sty
 INPUT C:\Users\pablo\AppData\Local\Programs\MiKTeX\tex\latex\hyperref\hyperref.sty
 INPUT C:\Users\pablo\AppData\Local\Programs\MiKTeX\tex\latex\hyperref\hyperref.sty
 INPUT C:\Users\pablo\AppData\Local\Programs\MiKTeX\tex\generic\iftex\iftex.sty
@@ -152,6 +150,8 @@ INPUT C:\Users\pablo\AppData\Local\Programs\MiKTeX\tex\generic\intcalc\intcalc.s
 INPUT C:\Users\pablo\AppData\Local\Programs\MiKTeX\tex\latex\hyperref\puenc.def
 INPUT C:\Users\pablo\AppData\Local\Programs\MiKTeX\tex\latex\hyperref\puenc.def
 INPUT C:\Users\pablo\AppData\Local\Programs\MiKTeX\tex\latex\hyperref\puenc.def
+INPUT C:\Users\pablo\AppData\Local\Programs\MiKTeX\tex\latex\url\url.sty
+INPUT C:\Users\pablo\AppData\Local\Programs\MiKTeX\tex\latex\url\url.sty
 INPUT C:\Users\pablo\AppData\Local\Programs\MiKTeX\tex\generic\bitset\bitset.sty
 INPUT C:\Users\pablo\AppData\Local\Programs\MiKTeX\tex\generic\bitset\bitset.sty
 INPUT C:\Users\pablo\AppData\Local\Programs\MiKTeX\tex\generic\bigintcalc\bigintcalc.sty
