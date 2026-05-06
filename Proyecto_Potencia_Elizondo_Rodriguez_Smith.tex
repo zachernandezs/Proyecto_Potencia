@@ -321,7 +321,7 @@ estas pérdidas, ante una corriente circulando por el semiconductor.
 \setlength{\parskip}{1em}
 
 En cuanto al diodo, este también debe de cumplir con ciertos requerimientos mínimos. Bloqueando
-en inversa la misma tensión $V_{o}$ y soportar la máxima corriente que circula por el inductor. 
+en inversa la misma tensión $V_{o}$ y soportar la máxima corriente que circula por el inductor. Se tiene el FSF10A40 y el ...
 
 \begin{table}[H]
     \centering
@@ -333,16 +333,15 @@ en inversa la misma tensión $V_{o}$ y soportar la máxima corriente que circula
         >{\hsize=0.75\hsize}X
     }
         \toprule
-        Parámetro                                   & ---- & ---- & ---- \\
+        Parámetro                                        & FSF10A40 & ---- & ---- \\
         \midrule
-        $V_{RRM}~\mathrm{[V]}$                          & $-$ & $-$     & $-$     \\
-        $I_{F(AV)}~@~25^\circ\mathrm{C}~\mathrm{[A]}$   & $-$  & $-$    & $-$      \\
-        $V_F$ @ $I_F$ [V]                               & $-$  & $-$    & $-$     \\
-        $t_{rr}$ [ns]                                   & $-$  & $-$    & $-$      \\
-        $Q_{rr}$ [nC]                                   & $-$  & $-$    & $-$    \\
-        Tipo de recuperación                            & $-$  & $-$    & $-$     \\
-        $R_{\theta JC}$ [$^\circ$C/W]                   & $-$  & $-$    & $-$      \\
-
+        $V_{RRM}~\mathrm{[V]}$                           & $400$  & $-$ & $-$ \\
+        $I_{F(AV)}~@~T_C=95^\circ\mathrm{C}~\mathrm{[A]}$ & $10$ & $-$ & $-$ \\
+        $V_F$ @ $I_F=10\,\mathrm{A}$ [V]                & $1.30$ & $-$ & $-$ \\
+        $t_{rr}$ [ns]                                    & $45$   & $-$ & $-$ \\
+        $Q_{rr}$ [nC]                                    & $\approx 10.8$ & $-$ & $-$ \\
+        Tipo de recuperación                             & Ultra-rápida (FRD) & $-$ & $-$ \\
+        $R_{\theta JC}~[^\circ\mathrm{C/W}]$             & $4$    & $-$ & $-$ \\
         \bottomrule
     \end{tabularx}
     \caption{Características de los diodos}
