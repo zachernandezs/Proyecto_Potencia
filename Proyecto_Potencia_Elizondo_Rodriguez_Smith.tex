@@ -59,6 +59,67 @@ component, formatting, style, styling, insert
 
 ....
 
+\section{Fundamentos teóricos}
+
+\subsection{Análisis dinámico de convertidores Boost}
+Un convertidor Boost es un circuito eletrónico que recibe una tensión CD y aumenta su magnitud en la salida, 
+de acuerdo con el ciclo de trabajo aplicado en la señal de control del transistor. Para encontrar la ecuación
+que describe el comportamiento dinámico del convertidor, se pueden analizar los momentos de encendido y apagado 
+del transistor (switch) \cite{hart2011power}.
+
+Por medio de la ecuación fundamental del inductor, cuando el interruptor está cerrado, la diferencia de corriente
+en la bobina está dada por:
+
+\begin{equation}
+\begin{aligned}
+    \Delta I_{L,~closed} &= \frac{V_{in} \cdot D \cdot T_{sw}}{L} \\
+\end{aligned}
+\label{eq:deltaIL_closed}
+\end{equation}
+
+Mientras que para cuando el interruptor está abierto:
+
+\begin{equation}
+\begin{aligned}
+    \Delta I_{L,~open} &= \frac{(V_s - V_o)(1 - D)\cdot T_{sw}}{L} \\
+\end{aligned}
+\label{eq:deltaIL_open}
+\end{equation}
+
+Y partiendo del hecho de que en estado estable, la carga neta en el inductor debe de ser cero:
+
+\begin{equation}
+\begin{aligned}
+    \Delta I_{L,~open} + \Delta I_{L,~closed} &= 0 \\
+    V_{out}                                   &= \frac{V_{in}}{1 - D} \\
+\end{aligned}
+\label{eq:deltaIL_steady}
+\end{equation}
+
+Este tipo de convertidores, pueden operar en modo de corriente continua o en modo de corriente
+discontinua.
+
+\subsubsection{Modo CCM} Es el modo de operación deseado para esta aplicación, en donde el inductor no llega
+a descargarse completamente, y su valor mínimo de corriente no llega a tocar el cero. Es en este modo
+donde aplica la relación descrita en la ecuación \ref{eq:deltaIL_steady}.
+
+\subsubsection{Modo DCM} En este modo de operación, la corriente en el inductor llega a un valor mínimo de cero, 
+lo cual introduce no linealidades en el comportamiento del convertidor, que invalidan el uso de la ecuación \ref{eq:deltaIL_steady} 
+como forma de describir el comportamiento dinámico del convertidor. 
+
+
+
+
+
+\subsection{Modelado promedio de convertidores Boost}
+
+\subsection{Controladores PI para convertidores DC-DC}
+
+\subsection{Discretización de controladores y efectos del muestreo}
+
+\subsection{Estrategias de validación experimental y comparación con modelos}
+
+
 \section{Especificaciones del sistema de potencia}
 
 El convertidor Boost a diseñar, debe de cumplir con las siguientes especificaciones

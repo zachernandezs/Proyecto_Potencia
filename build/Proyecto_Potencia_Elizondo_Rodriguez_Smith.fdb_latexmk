@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex build/Proyecto_Potencia_Elizondo_Rodriguez_Smith"] 1778027668.6912 "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.aux" "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.bbl" "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith" 1778033852.95794 0
+["bibtex build/Proyecto_Potencia_Elizondo_Rodriguez_Smith"] 1778109216.50918 "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.aux" "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.bbl" "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith" 1778109219.01776 0
   "./literatura.bib" 1778027457 1127 3a797316f1fc4c1029794c51847c1ba0 ""
   "C:/Users/pablo/AppData/Local/Programs/MiKTeX/bibtex/bst/ieeetran/IEEEtran.bst" 1440622569 57748 7c8250ecf02814ce6ddc0cdbb63df1dd ""
-  "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.aux" 1778033851 4425 94bfda4370e48db49599cc32756f0d3b "pdflatex"
+  "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.aux" 1778109218 5950 787a9e23d453c9bdc74d87c2d916e6e4 "pdflatex"
   (generated)
   "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.bbl"
   "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.blg"
   (rewritten before read)
-["pdflatex"] 1778033849.8431 "c:/LaTex/proyecto_Potencia/Proyecto_Potencia/Proyecto_Potencia_Elizondo_Rodriguez_Smith.tex" "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.pdf" "Proyecto_Potencia_Elizondo_Rodriguez_Smith" 1778033852.95908 0
+["pdflatex"] 1778109216.88898 "c:/LaTex/proyecto_Potencia/Proyecto_Potencia/Proyecto_Potencia_Elizondo_Rodriguez_Smith.tex" "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.pdf" "Proyecto_Potencia_Elizondo_Rodriguez_Smith" 1778109219.01856 0
   "C:/Users/pablo/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1777498834 84158 d77284a6843bde1e4b9764f09fb2e89e ""
   "C:/Users/pablo/AppData/Local/MiKTeX/miktex/data/le/pdftex/pdflatex.fmt" 1773891195 13333849 4a0400ba1b5d22fbf93ff37f9e9d64d3 ""
   "C:/Users/pablo/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/base/8r.enc" 1458473887 4993 80dc9bab7f31fb78a000ccfed0e27cab ""
@@ -128,11 +128,11 @@
   "C:/Users/pablo/AppData/Local/Programs/MiKTeX/tex/latex/tools/tabularx.sty" 1761901070 7243 a2c17f18e2c9b702b84fad03d5f9c78b ""
   "C:/Users/pablo/AppData/Local/Programs/MiKTeX/tex/latex/url/url.sty" 1388490452 12796 8edb7d69a20b857904dd0ea757c14ec9 ""
   "C:/Users/pablo/AppData/Local/Programs/MiKTeX/tex/latex/xcolor/xcolor.sty" 1729265222 55384 b454dec21c2d9f45ec0b793f0995b992 ""
-  "Proyecto_Potencia_Elizondo_Rodriguez_Smith.tex" 1778033848 13984 bc94f1d3b1307a052023f5cd899ad0aa ""
-  "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.aux" 1778033851 4425 94bfda4370e48db49599cc32756f0d3b "pdflatex"
-  "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.bbl" 1778027669 1518 3fea7631257f3593522591709774ff98 "bibtex build/Proyecto_Potencia_Elizondo_Rodriguez_Smith"
-  "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.out" 1778033851 2596 c6df16313371d2c3833071d20a03b5b8 "pdflatex"
-  "c:/LaTex/proyecto_Potencia/Proyecto_Potencia/Proyecto_Potencia_Elizondo_Rodriguez_Smith.tex" 1778033848 13984 bc94f1d3b1307a052023f5cd899ad0aa ""
+  "Proyecto_Potencia_Elizondo_Rodriguez_Smith.tex" 1778109212 16528 0e0738f8c920efa0b3ca21940691d236 ""
+  "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.aux" 1778109218 5950 787a9e23d453c9bdc74d87c2d916e6e4 "pdflatex"
+  "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.bbl" 1778109216 1518 3fea7631257f3593522591709774ff98 "bibtex build/Proyecto_Potencia_Elizondo_Rodriguez_Smith"
+  "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.out" 1778109218 4543 2a6acae56ebf646f2236ae42fe40bf19 "pdflatex"
+  "c:/LaTex/proyecto_Potencia/Proyecto_Potencia/Proyecto_Potencia_Elizondo_Rodriguez_Smith.tex" 1778109212 16528 0e0738f8c920efa0b3ca21940691d236 ""
   (generated)
   "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.aux"
   "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.log"
