@@ -112,6 +112,55 @@ como forma de describir el comportamiento dinámico del convertidor.
 
 
 \subsection{Modelado promedio de convertidores Boost}
+El modelado por medio de espacio de estados, es una técnica que permite analizar
+el comportamiento dinámico del sistema ante las no linealidades propias de un circuito
+como el convertidor Boost. 
+Un espacio de estados se forma a partir de las ecuaciones dinámicas de los componentes que almacenan
+energía en el sistema, para el caso de Boost serían el inductor (su corriente) y el capacitor (su tensión). Además, 
+el análisis se hace para dos momentos específicos, cuando el interruptor (MOSFET) está cerrado, 
+y cuando está abierto \cite{mohan2003power}. Lo anterior permite promediar ambos momentos de acuerdo con el tiempo
+de cada uno para cada periodo, lo que forma el espacio de estados promedio, que posteriormente debe de ser linealizado
+de acuerdo al punto de operación del sistema. 
+
+%Considerando como variables de estado $x_1 = i_L$ y $x_2 = v_C$:
+
+En el momento en el que el transistor está encendido, durante un tiempo $D \cdot T_{sw}$:
+
+\begin{equation}
+\begin{aligned}
+    L \cdot \frac{di_L}{dt} &= V_{in}  \\
+\end{aligned}
+\label{eq:inductor_voltage_on}
+\end{equation}
+
+\begin{equation}
+\begin{aligned}
+    C \cdot \frac{dv_C}{dt} &= -\frac{V_c}{R_L}  \\
+\end{aligned}
+\label{eq:capacitor_current1}
+\end{equation}
+
+Luego, cuando el transistor está apagado, durante un tiempo $(1 - D) \cdot T_{sw}$:
+
+\begin{equation}
+\begin{aligned}
+    L \cdot \frac{di_L}{dt} &= V_{in} - V_c  \\
+\end{aligned}
+\label{eq:inductor_voltage_off}
+\end{equation}
+
+\begin{equation}
+\begin{aligned}
+    C \cdot \frac{dv_C}{dt} &= i_L - \frac{V_c}{R_L}  \\
+\end{aligned}
+\label{eq:capacitor_current_off}
+\end{equation}
+
+Las cuatro ecuaciones anteriores, describen el comportamiento dinámico del sistema según los estados de los componentes
+que almacenan energía. 
+
+
+
 
 \subsection{Controladores PI para convertidores DC-DC}
 
