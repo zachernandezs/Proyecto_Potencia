@@ -464,9 +464,379 @@ en inversa la misma tensión $V_{o}$ y soportar la máxima corriente que circula
 
 \section{Modelado y análisis}
 
+A partir del modelo promedio del convertidor Boost descrito anteriormente, se obtiene una representación dinámica que permite analizar el comportamiento de la tensión de salida ante variaciones pequeñas del ciclo de trabajo. En este caso, las variables de estado seleccionadas fueron la corriente del inductor $i_L$ y la tensión del capacitor $v_C$, ya que corresponden a los elementos que almacenan energía dentro del convertidor.
+
+El modelo promedio se obtiene al combinar los dos estados de operación del
+convertidor, es decir, cuando el MOSFET está encendido y cuando está apagado, ponderando cada estado por el intervalo de tiempo en el que ocurre. De esta forma, al considerar que el interruptor conduce durante una fracción $D$ del periodo de conmutación y permanece apagado durante una fracción $(1-D)$, se obtienen las ecuaciones promedio:
+
+\begin{equation}
+    \frac{di_L}{dt} =
+    \frac{V_{in} - (1-D)v_C}{L}
+    \label{eq:boost_prom_il}
+\end{equation}
+
+\begin{equation}
+    \frac{dv_C}{dt} =
+    \frac{(1-D)i_L - \frac{v_C}{R_L}}{C}
+    \label{eq:boost_prom_vc}
+\end{equation}
+
+Estas ecuaciones representan el comportamiento promedio del convertidor en modo de conducción continua. Sin embargo, debido a que el modelo depende del producto entre el ciclo de trabajo y las variables de estado, el sistema sigue siendo no lineal. Por esta razón, se realiza una linealización alrededor del punto de operación seleccionado para el diseño.
+
+El punto de operación utilizado corresponde a:
+
+\begin{equation}
+    V_{in}=12~\mathrm{V}, \quad
+    V_o=24~\mathrm{V}, \quad
+    D=0.5
+\end{equation}
+
+con los valores de diseño:
+
+\begin{equation}
+    L=500~\mu\mathrm{H}, \quad
+    C=47~\mu\mathrm{F}, \quad
+    R_L=100~\Omega
+\end{equation}
+
+Para este punto de operación se obtuvo una corriente de salida de:
+
+\begin{equation}
+    I_o = \frac{V_o}{R_L}
+    =
+    \frac{24}{100}
+    =
+    0.24~\mathrm{A}
+\end{equation}
+
+y una corriente promedio en el inductor de:
+
+\begin{equation}
+    I_L = \frac{I_o}{1-D}
+    =
+    \frac{0.24}{0.5}
+    =
+    0.48~\mathrm{A}
+\end{equation}
+
+Además, el rizado pico a pico de la corriente del inductor fue de
+$0.48~\mathrm{A}$, por lo que la corriente mínima del inductor resulta:
+
+\begin{equation}
+    i_{L,min}=I_L-\frac{\Delta i_L}{2}
+    =
+    0.48-\frac{0.48}{2}
+    =
+    0.24~\mathrm{A}
+\end{equation}
+
+Como $i_{L,min}>0$, se confirma que el convertidor opera en modo de conducción continua para el punto de operación analizado. Esto es importante porque la función de transferencia utilizada para el diseño del controlador se basa en el modelo promedio del convertidor Boost en CCM. Adicionalmente, el rizado estimado de tensión de salida fue de $0.43~\%$, valor inferior al límite de $5~\%$ establecido en las especificaciones.
+
+Para la linealización se consideran pequeñas perturbaciones alrededor del punto de operación:
+
+\begin{equation}
+    i_L = I_L + \hat{i}_L
+\end{equation}
+
+\begin{equation}
+    v_C = V_o + \hat{v}_o
+\end{equation}
+
+\begin{equation}
+    d = D + \hat{d}
+\end{equation}
+
+Al sustituir estas expresiones en el modelo promedio y despreciar productos de perturbaciones pequeñas, se obtiene el modelo linealizado en espacio de estados:
+
+\begin{equation}
+    \dot{\hat{x}} = A\hat{x} + B\hat{d}
+\end{equation}
+
+\begin{equation}
+    \hat{v}_o = C\hat{x} + D\hat{d}
+\end{equation}
+
+donde:
+
+\begin{equation}
+    \hat{x} =
+    \begin{bmatrix}
+        \hat{i}_L \\
+        \hat{v}_o
+    \end{bmatrix}
+\end{equation}
+
+Para los valores de diseño utilizados, las matrices obtenidas fueron:
+
+\begin{equation}
+A =
+\begin{bmatrix}
+0 & -1000 \\
+10638 & -212.8
+\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+B =
+\begin{bmatrix}
+48000 \\
+-10213
+\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+C =
+\begin{bmatrix}
+0 & 1
+\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+D = 0
+\end{equation}
+
+La matriz $A$ describe la dinámica interna del convertidor alrededor del punto de operación, mientras que la matriz $B$ representa cómo una perturbación en el ciclo de trabajo afecta las variables de estado. La matriz $C$ indica que la salida de interés es la tensión de salida del convertidor.
+
+A partir de este modelo linealizado se obtiene la función de transferencia entre la perturbación del ciclo de trabajo y la perturbación de la tensión de salida:
+
+\begin{equation}
+    G_{vd}(s)=
+    \frac{\hat{v}_o(s)}{\hat{d}(s)}
+\end{equation}
+
+La función de transferencia obtenida fue:
+
+\begin{equation}
+    G_{vd}(s)=
+    \frac{-1.021\times10^4s+5.106\times10^8}
+    {s^2+212.8s+1.064\times10^7}
+    \label{eq:gvd_obtenida}
+\end{equation}
+
+Esta función representa la planta que será controlada mediante el PI. El signo negativo en el término asociado a $s$ en el numerador indica la presencia de un cero en el semiplano derecho, característica propia de los convertidores Boost. Este cero es importante porque limita el ancho de banda alcanzable por el controlador.
+
+Del análisis de la planta se obtuvo una frecuencia natural de:
+
+\begin{equation}
+    f_0 = 519.11~\mathrm{Hz}
+\end{equation}
+
+un factor de calidad de:
+
+\begin{equation}
+    Q = 15.3297
+\end{equation}
+
+y un cero en el semiplano derecho ubicado en:
+
+\begin{equation}
+    f_z = 7957.75~\mathrm{Hz}
+\end{equation}
+
+equivalente a:
+
+\begin{equation}
+    \omega_z = 50000~\mathrm{rad/s}
+\end{equation}
+
+La presencia de este cero implica que no es conveniente diseñar el controlador con una frecuencia de cruce cercana a $f_z$, ya que esto puede reducir el margen de fase y comprometer la estabilidad del sistema. Por esta razón, el diseño del controlador debe realizarse con un ancho de banda considerablemente menor que la frecuencia del cero en el semiplano derecho.
+
+Finalmente, se verificó que la función de transferencia obtenida desde el modelo en espacio de estados coincide con la forma estándar de $G_{vd}(s)$ para un convertidor Boost en CCM. Aunque MATLAB puede mostrar ambas funciones con diferentes escalas numéricas, representan la misma planta dinámica alrededor del punto de operación seleccionado.
+
+
+
+
 \section{Validación del modelo}
 
 \section{Diseño del control}
+
+El objetivo del sistema de control es regular la tensión de salida del convertidor Boost alrededor de su valor de referencia. Por esta razón, la variable controlada se define como la tensión de salida $v_o$, mientras que la variable manipulada corresponde al ciclo de trabajo $D$ aplicado al PWM del convertidor.
+
+La referencia del sistema se fijó en:
+
+\begin{equation}
+    V_{ref}=24~\mathrm{V}
+\end{equation}
+
+De esta forma, el error de control en tiempo discreto se calcula como:
+
+\begin{equation}
+    e[k]=V_{ref}-v_o[k]
+\end{equation}
+
+donde $v_o[k]$ corresponde a la medición de la tensión de salida en el instante de muestreo $k$. Si la tensión de salida disminuye por debajo de la referencia, el error se vuelve positivo y el controlador incrementa el ciclo de trabajo. Esto permite aumentar la energía transferida desde la entrada hacia la salida del convertidor.
+
+Para el diseño del controlador se utilizó la función de transferencia
+$G_{vd}(s)$ obtenida en la sección de modelado. Esta función relaciona pequeñas variaciones del ciclo de trabajo con pequeñas variaciones en la tensión de salida:
+
+\begin{equation}
+    G_{vd}(s)=\frac{\hat{v}_o(s)}{\hat{d}(s)}
+\end{equation}
+
+Debido a que esta planta corresponde a un modelo de pequeña señal, la acción de control calculada por el PI se interpreta como una perturbación alrededor del ciclo de trabajo nominal. Por tanto, el ciclo de trabajo aplicado al PWM se define como:
+
+\begin{equation}
+    D[k]=D_0+u[k]
+\end{equation}
+
+donde $D_0=0.5$ corresponde al ciclo de trabajo nominal para el punto de operación $V_{in}=12~\mathrm{V}$ y $V_o=24~\mathrm{V}$, mientras que $u[k]$ es la salida del controlador.
+
+El controlador seleccionado fue un PI, ya que permite corregir el error en estado estacionario mediante la acción integral, manteniendo una estructura sencilla para su implementación digital en el procesador RISC-V. En tiempo continuo, el controlador se expresa como:
+
+\begin{equation}
+    C_{PI}(s)=K_p\left(1+\frac{1}{T_i s}\right)
+\end{equation}
+
+donde $K_p$ es la ganancia proporcional y $T_i$ es el tiempo integral. La ganancia integral se obtiene mediante:
+
+\begin{equation}
+    K_i=\frac{K_p}{T_i}
+\end{equation}
+
+El diseño del PI se realizó en MATLAB mediante un barrido de la frecuencia de cruce. Para cada frecuencia candidata se colocó el cero del PI una década por debajo de dicha frecuencia de cruce, con el fin de reducir la degradación del margen de fase. Posteriormente, se calculó la ganancia proporcional necesaria para que la magnitud del lazo abierto fuera unitaria en la frecuencia de cruce analizada.
+
+Los criterios utilizados para seleccionar el controlador fueron los siguientes:
+
+\begin{itemize}
+    \item Margen de fase mínimo de $45^\circ$.
+    \item Frecuencia de cruce considerablemente menor que la frecuencia del cero
+    en el semiplano derecho.
+    \item Error en estado estacionario nulo ante cambios de referencia constantes.
+    \item Controlador sencillo de discretizar e implementar en el procesador
+    RISC-V.
+\end{itemize}
+
+La frecuencia del cero en el semiplano derecho obtenida para la planta fue:
+
+\begin{equation}
+    f_z=7957.75~\mathrm{Hz}
+\end{equation}
+
+Por esta razón, el barrido de diseño se limitó hasta aproximadamente:
+
+\begin{equation}
+    \frac{f_z}{8}=994.7~\mathrm{Hz}
+\end{equation}
+
+De esta forma se evita diseñar un controlador con un ancho de banda cercano al cero en el semiplano derecho, ya que esto podría reducir el margen de fase y afectar la estabilidad del sistema.
+
+A partir del barrido realizado en MATLAB, se seleccionó una frecuencia de cruce de:
+
+\begin{equation}
+    f_c=529.38~\mathrm{Hz}
+\end{equation}
+
+con un margen de fase de:
+
+\begin{equation}
+    PM=49.48^\circ
+\end{equation}
+
+Este valor supera el margen mínimo de $45^\circ$, por lo que se considera
+aceptable para el diseño del controlador. Además, el margen de ganancia obtenido fue:
+
+\begin{equation}
+    GM=16.03~\mathrm{dB}
+\end{equation}
+
+Los parámetros del controlador PI obtenidos fueron:
+
+\begin{equation}
+    K_p=0.001605
+\end{equation}
+
+\begin{equation}
+    T_i=0.003006~\mathrm{s}
+\end{equation}
+
+\begin{equation}
+    K_i=0.533967
+\end{equation}
+
+Con estos valores, el cero del controlador PI queda ubicado en:
+
+\begin{equation}
+    f_{z,PI}=\frac{1}{2\pi T_i}=52.94~\mathrm{Hz}
+\end{equation}
+
+Por tanto, el controlador continuo obtenido es:
+
+\begin{equation}
+    C_{PI}(s)=
+    \frac{4.826\times10^{-6}s+0.001605}{0.003006s}
+\end{equation}
+
+Una vez diseñado el controlador continuo, se realizó la discretización para su implementación digital. El periodo de muestreo seleccionado fue:
+
+\begin{equation}
+    T_s=200~\mu\mathrm{s}
+\end{equation}
+
+lo cual equivale a una frecuencia de control de:
+
+\begin{equation}
+    f_{control}=5~\mathrm{kHz}
+\end{equation}
+
+La discretización se realizó mediante el método de Tustin, también conocido como método bilineal. Este método permite obtener una aproximación discreta del PI continuo manteniendo una buena correspondencia en frecuencia para el rango de interés del controlador.
+
+El controlador discreto obtenido fue:
+
+\begin{equation}
+    C_{PI}(z)=
+    \frac{0.001659z-0.001552}{z-1}
+\end{equation}
+
+A partir de esta función de transferencia discreta se obtiene la ecuación de
+diferencias:
+
+\begin{equation}
+    u[k]=u[k-1]+b_0e[k]+b_1e[k-1]
+\end{equation}
+
+donde:
+
+\begin{equation}
+    b_0=0.001659
+\end{equation}
+
+\begin{equation}
+    b_1=-0.001552
+\end{equation}
+
+Por tanto, la ecuación discreta final queda:
+
+\begin{equation}
+    u[k]=u[k-1]+0.001659e[k]-0.001552e[k-1]
+\end{equation}
+
+Esta forma es conveniente para la implementación en RISC-V, ya que únicamente requiere almacenar el error actual, el error anterior y la salida anterior del controlador. Además, el script de MATLAB generó los coeficientes escalados en formato de punto fijo Q16, obteniéndose:
+
+\begin{equation}
+    b_{0,Q16}=109
+\end{equation}
+
+\begin{equation}
+    b_{1,Q16}=-102
+\end{equation}
+
+Estos valores pueden ser utilizados como referencia si la implementación digital se realiza con aritmética de punto fijo.
+
+Finalmente, debido a que el controlador modifica el ciclo de trabajo del PWM, se debe limitar la salida para evitar valores no válidos o condiciones de operación peligrosas. Para este diseño, el rango nominal esperado del ciclo de trabajo se encuentra entre $0.5$ y $0.667$, correspondiente al rango de entrada de $12~\mathrm{V}$ a $8~\mathrm{V}$. Sin embargo, se propone permitir un margen de control ligeramente mayor:
+
+\begin{equation}
+    0.45 \leq D[k] \leq 0.75
+\end{equation}
+
+Con esta saturación se evita que el PI genere ciclos de trabajo negativos,
+mayores al 100\%, o demasiado cercanos a la unidad. Además, esta limitación ayuda a reducir problemas asociados a la acumulación excesiva de la acción integral cuando el controlador alcanza sus límites de operación.
+
+Por lo tanto, este controlador diseñado regula la tensión de salida del Boost tomando como entrada el error entre la referencia de $24~\mathrm{V}$ y la tensión medida. La acción de control se calcula mediante un PI discreto y se aplica como una corrección sobre el ciclo de trabajo nominal del convertidor. Los márgenes de estabilidad obtenidos indican que el diseño es adecuado. 
+
+
+
+
+
 
 \section{Validación del sistema en lazo cerrado}
 
