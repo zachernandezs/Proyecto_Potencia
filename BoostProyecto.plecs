@@ -66,8 +66,8 @@ Plecs {
   InvalidNetlistFunctionEvaluationMsg "1"
   IncompatibleInitialConditionMsg "2"
   Schematic {
-    Location      [317, 114; 1071, 629]
-    ZoomFactor    1
+    Location      [2400, 23; 4320, 989]
+    ZoomFactor    1.96257
     SliderPosition [0, 0]
     ShowBrowser   off
     BrowserWidth  100
@@ -147,7 +147,7 @@ Plecs {
       Type          Diode
       Name          "D1"
       Show          on
-      Position      [355, 205]
+      Position      [380, 205]
       Direction     left
       Flipped       off
       LabelPosition south
@@ -163,7 +163,7 @@ Plecs {
       }
       Parameter {
         Variable      "thermal"
-        Value         ""
+        Value         "file:BYC30-600P"
         Show          off
       }
       Parameter {
@@ -196,7 +196,7 @@ Plecs {
       Type          Capacitor
       Name          "C1"
       Show          on
-      Position      [435, 250]
+      Position      [440, 250]
       Direction     down
       Flipped       on
       LabelPosition west
@@ -215,7 +215,7 @@ Plecs {
       Type          Resistor
       Name          "R1"
       Show          on
-      Position      [540, 250]
+      Position      [520, 250]
       Direction     up
       Flipped       off
       LabelPosition east
@@ -277,7 +277,7 @@ Plecs {
       Type          Voltmeter
       Name          "Vm1"
       Show          on
-      Position      [605, 250]
+      Position      [605, 245]
       Direction     up
       Flipped       off
       LabelPosition west
@@ -286,7 +286,7 @@ Plecs {
       Type          Scope
       Name          "Scope"
       Show          on
-      Position      [675, 250]
+      Position      [695, 250]
       Direction     up
       Flipped       off
       LabelPosition south
@@ -397,13 +397,13 @@ Plecs {
       Type          Wire
       SrcComponent  "C1"
       SrcTerminal   1
-      Points        [435, 205]
+      Points        [440, 205]
       Branch {
         DstComponent  "D1"
         DstTerminal   2
       }
       Branch {
-        Points        [540, 205]
+        Points        [520, 205]
         Branch {
           DstComponent  "R1"
           DstTerminal   1
@@ -431,13 +431,13 @@ Plecs {
           DstTerminal   2
         }
         Branch {
-          Points        [435, 310]
+          Points        [440, 310]
           Branch {
             DstComponent  "C1"
             DstTerminal   2
           }
           Branch {
-            Points        [540, 310]
+            Points        [520, 310]
             Branch {
               DstComponent  "R1"
               DstTerminal   2
@@ -463,7 +463,6 @@ Plecs {
       Type          Signal
       SrcComponent  "Vm1"
       SrcTerminal   3
-      Points        [635, 250; 635, 245]
       DstComponent  "Scope"
       DstTerminal   1
     }
