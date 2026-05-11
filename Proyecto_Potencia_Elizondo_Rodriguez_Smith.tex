@@ -658,6 +658,27 @@ La función de transferencia obtenida fue:
 
 Esta función representa la planta que será controlada mediante el PI. El signo negativo en el término asociado a $s$ en el numerador indica la presencia de un cero en el semiplano derecho, característica propia de los convertidores Boost. Este cero es importante porque limita el ancho de banda alcanzable por el controlador.
 
+
+La Figura \ref{fig:analisis_planta_gvd} muestra el análisis de la planta $G_{vd}(s)$ obtenido en MATLAB. En la parte superior se presenta el diagrama de Bode, donde se observa una resonancia asociada a la frecuencia natural del modelo, lo cual es coherente con el factor de calidad elevado obtenido para la planta.
+
+En la parte inferior de la figura se muestra la respuesta de la planta en lazo  abierto ante una pequeña perturbación en el ciclo de trabajo, correspondiente a  $\Delta d=0.01$. Esta perturbación no representa un cambio absoluto del ciclo de  trabajo, sino una variación alrededor del punto nominal $D=0.5$. Debido a que la  ganancia de continua de la planta es $K=48$, el cambio esperado en estado  estacionario es:
+
+\begin{equation}
+    \Delta V_o = K\Delta d = 48(0.01)=0.48~\mathrm{V}
+\end{equation}
+
+Como se observa en la respuesta temporal, la tensión de salida converge aproximadamente a este valor, lo cual confirma la consistencia del del resultado esperado para el modelo de pequeña señal. Sin embargo, la respuesta presenta oscilaciones antes de alcanzar el estado estacionario, lo que indica un comportamiento subamortiguado de la  planta en lazo abierto.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.91\columnwidth]{Análisis de Planta Gvd(s).png}
+    \caption{Análisis de la planta $G_{vd}(s)$ mediante diagrama de Bode y respuesta ante una perturbación pequeña del ciclo de trabajo.}
+    \label{fig:analisis_planta_gvd}
+\end{figure}
+
+A partir de esta figura se confirma que el modelo linealizado permite analizar  el comportamiento local del convertidor alrededor del punto de operación. La  respuesta obtenida no incluye el rizado de conmutación ni efectos no ideales del circuito, ya que corresponde al modelo promedio de pequeña señal. El objetivo del PI será regular la tensión de salida y mejorar el comportamiento dinámico del sistema en lazo cerrado.
+
+
 Del análisis de la planta se obtuvo una frecuencia natural de:
 
 \begin{equation}
@@ -882,6 +903,54 @@ Por lo tanto, este controlador diseñado regula la tensión de salida del Boost 
 
 
 \section{Validación del sistema en lazo cerrado}
+
+\subsection{Validación mediante el modelo linealizado en MATLAB}
+
+Una vez diseñado el controlador PI, se realizó una primera validación del sistema en lazo cerrado mediante el modelo linealizado en MATLAB. Esta validación permite analizar el comportamiento esperado del convertidor antes de implementar el
+controlador. En esta etapa, la planta utilizada corresponde a la función de transferencia $G_{vd}(s)$ obtenida a partir del modelo promedio linealizado, mientras que el controlador corresponde al PI diseñado y discretizado previamente.
+
+En la Figura \ref{fig:lazo_abierto_cerrado} se muestra el análisis del lazo abierto $C(s)G_{vd}(s)$ y la respuesta del sistema en lazo cerrado ante una referencia de $24~\mathrm{V}$. El diagrama de Bode permite verificar que el sistema presenta un margen de ganancia de $16~\mathrm{dB}$ y un margen de fase de $49.5^\circ$, valor superior al criterio mínimo de $45^\circ$ definido para el diseño. La frecuencia de cruce obtenida fue aproximadamente $3.33\times10^3~\mathrm{rad/s}$, equivalente a $530~\mathrm{Hz}$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\columnwidth]{Lazo abierto y cerrado.png}
+    \caption{Análisis del lazo abierto y respuesta en lazo cerrado del modelo linealizado.}
+    \label{fig:lazo_abierto_cerrado}
+\end{figure}
+
+La respuesta temporal de la misma figura muestra que la tensión de salida converge hacia la referencia de $24~\mathrm{V}$ sin presentar sobreimpulso apreciable. A partir del análisis realizado en MATLAB se obtuvo un tiempo de asentamiento de $0.1612~\mathrm{s}$ y un sobreimpulso de $0~\%$. Estos resultados indican que el controlador proporciona una respuesta estable y suficientemente amortiguada para el modelo linealizado.
+
+Posteriormente, se evaluó el comportamiento del controlador en su forma discreta.
+
+Para esto se utilizó el periodo de muestreo definido para el lazo de control:
+
+\begin{equation}
+    T_s = 200~\mu\mathrm{s}
+\end{equation}
+
+lo que corresponde a una frecuencia de control de $5~\mathrm{kHz}$.
+    
+En la Figura \ref{fig:simulacion_discreta_lazo_cerrado} se muestran tres pruebas realizadas con el PI discreto: respuesta ante referencia de $24~\mathrm{V}$, seguimiento de un cambio de referencia y respuesta ante una perturbación equivalente a un cambio
+de carga.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\columnwidth]{Simulación discreta del lazo cerrado.png}
+    \caption{Simulación del lazo cerrado con PI discreto mediante el modelo linealizado en MATLAB.}
+    \label{fig:simulacion_discreta_lazo_cerrado}
+\end{figure}
+
+En la primera prueba se observa que la salida aumenta progresivamente hasta alcanzar la referencia de $24~\mathrm{V}$. Además, la tensión entra dentro de la banda permitida de $\pm 5~\%$, correspondiente al intervalo entre $22.8~\mathrm{V}$ y $25.2~\mathrm{V}$. Esto confirma que el PI discreto permite
+regular la salida dentro del margen especificado para el modelo analizado.
+
+En la segunda prueba se aplicó un cambio de referencia de $20~\mathrm{V}$ a $24~\mathrm{V}$ en $t=10~\mathrm{ms}$. La respuesta muestra que el sistema sigue el nuevo valor de referencia de forma estable y sin sobreimpulso significativo. Esto evidencia que el controlador puede ajustar el ciclo de trabajo para llevar
+la salida hacia una nueva condición de operación.
+
+Finalmente, se evaluó una perturbación equivalente a un cambio de carga de $100~\Omega$ a $50~\Omega$. Este cambio representa un aumento de corriente de carga de aproximadamente $0.24~\mathrm{A}$. Como se observa en la respuesta, la tensión de salida presenta una caída inicial debido al aumento de demanda de corriente, pero posteriormente el controlador actúa sobre el ciclo de trabajo y
+recupera la salida hacia la referencia de $24~\mathrm{V}$. 
+
+Es importante señalar que esta prueba de cambio de carga corresponde a una aproximación realizada sobre el modelo linealizado, por lo que no incluye el rizado de conmutación ni los efectos no ideales del convertidor físico.
+
 
 \section{Análisis de resultados}
 
