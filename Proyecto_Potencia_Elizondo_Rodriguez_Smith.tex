@@ -45,19 +45,30 @@ zachernandezs@estudiantec.cr}
 
 \maketitle
 
-\begin{abstract}
-This document is a model and instructions for \LaTeX.
-This and the IEEEtran.cls file define the components of your paper [title, text, heads, etc.]. *CRITICAL: Do Not Use Symbols, Special Characters, Footnotes, 
-or Math in Paper Title or Abstract.
-\end{abstract}
-
-\begin{IEEEkeywords}
-component, formatting, style, styling, insert
-\end{IEEEkeywords}
-
 \section{Introducción}
 
-....
+El presente informe documenta el diseño, modelado, simulación e implementación 
+de un convertidor DC-DC tipo \textit{Boost} con control digital en lazo cerrado. 
+Este tipo de convertidor es ampliamente utilizado en aplicaciones donde se requiere 
+elevar una tensión de entrada a un nivel superior regulado, como sistemas fotovoltaicos, 
+fuentes con batería y etapas de acondicionamiento de energía.
+
+El diseño del convertidor abarca la selección y dimensionamiento de los componentes 
+pasivos y activos, el análisis de pérdidas por conducción y conmutación, y la 
+justificación de la operación en modo de conducción continua (CCM). Sobre esta base, 
+se desarrolla un modelo promedio del sistema, a partir del cual se obtiene la función 
+de transferencia que describe la dinámica del convertidor alrededor de su punto de 
+operación nominal.
+
+Para la regulación de la tensión de salida se diseña un controlador PI en tiempo 
+discreto, cuya implementación se realiza sobre un procesador RISC-V ejecutándose 
+en una FPGA. Este enfoque replica la arquitectura utilizada en controladores modernos 
+de potencia programables, donde el procesador ejecuta periódicamente la ley de 
+control.
+
+Finalmente, el sistema es validado mediante simulación y pruebas experimentales, 
+comparando los resultados obtenidos con las predicciones del modelo analítico e 
+identificando las discrepancias asociadas a efectos no ideales.
 
 \section{Fundamentos teóricos}
 
@@ -166,7 +177,39 @@ que almacenan energía.
 
 \subsection{Discretización de controladores y efectos del muestreo}
 
+
+
 \subsection{Estrategias de validación experimental y comparación con modelos}
+El proceso de validación experimental, permite analizar el comportamiento real del sistema y compararlo
+con los modelos analíticos y de simulación, construidos. Para verificar el correcto funcionamiento del convertidor
+o bien identificar errores en el proceso de diseño.
+
+Las etapas del proceso de validación pueden comprender desde el modelo analítico, la simulación (usando el software
+PLECS para esta ocación) y la de mayor peso que es la implementación física del circuito.
+
+\subsubsection{Validación del modelo contra simulación}
+Este es el primer nivel de validación, en donde se comparan los resultados del modelo linealizado en el punto de operación, 
+con el comportamiento en la simulación. Verificando principalmente que $V_{o}$, $I_L$ y $D$ coincidan en ambos casos; además, es posible
+verificar el comportamiento de la respuesta transitoria en las gráficas obtenidas, con respecto a lo esperado según la predicción del modelo
+lineal y la función de transferencia obtenida.
+Como un aspecto importante a considerar en esta etapa, es que el modelo ideal no considera las pérdidas que se presentan en el convertidor.
+
+\subsubsection{Validación de la simulación contra la implementación física}
+Acá es donde se podrían encontrar más discrepancias al hacer la comparación. Al comparar la simulación en PLECS con la implementación
+física real, es posible encontrar diferencias debido a componentes no ideales, pérdidas reales, ruido y errores de cuantización,
+retardos en el proceso de computación en el procesador RISC-V, entre otros. 
+
+\subsubsection{Métricas de comparación}
+Algunas de las herramientas que permiten medir el comportamiento del convertidor son: el error en régimen permanente, el cual mide la diferencia
+porcentual entre la entrada deseada y la entrada real obtenida; el tiempo de establecimiento, que corresponde al tiempo que le tarda al sistema estabilizar 
+la salida en el rango de error $< 5\%$; el sobrepico, que es la máxima desviación transitoria respecto al valor nominal deseado \cite{nise2015control}.
+
+Para las pruebas en la implementación física, se puedes hacer variaciones en la carga y evaluar la respuesta del circuito ante estas variaciones. Así como
+variar la tensión de entrada en el rango adecuado, verificando que la salida responda según debería.
+
+
+
+
 
 
 \section{Especificaciones del sistema de potencia}
