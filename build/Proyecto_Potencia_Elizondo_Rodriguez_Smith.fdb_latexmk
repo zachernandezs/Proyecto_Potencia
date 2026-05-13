@@ -1,13 +1,14 @@
 # Fdb version 4
-["bibtex build/Proyecto_Potencia_Elizondo_Rodriguez_Smith"] 1778458421.96224 "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.aux" "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.bbl" "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith" 1778458424.36447 0
-  "./literatura.bib" 1778458031 1649 deb11dbff9bfe57298d68e7d6928a229 ""
+["bibtex build/Proyecto_Potencia_Elizondo_Rodriguez_Smith"] 1778693779.74054 "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.aux" "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.bbl" "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith" 1778693782.76891 0
+  "./literatura.bib" 1778690753 2203 7a5df45887a21f231cbfb08eb4bf4c81 ""
   "C:/Users/pablo/AppData/Local/Programs/MiKTeX/bibtex/bst/ieeetran/IEEEtran.bst" 1440622569 57748 7c8250ecf02814ce6ddc0cdbb63df1dd ""
-  "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.aux" 1778458423 7190 54a062f55f6e1523f269500940ae42f6 "pdflatex"
+  "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.aux" 1778693781 10188 74ca3149a575feaed9f9fd0f47774744 "pdflatex"
   (generated)
   "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.bbl"
   "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.blg"
   (rewritten before read)
-["pdflatex"] 1778458422.32516 "c:/LaTex/proyecto_Potencia/Proyecto_Potencia/Proyecto_Potencia_Elizondo_Rodriguez_Smith.tex" "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.pdf" "Proyecto_Potencia_Elizondo_Rodriguez_Smith" 1778458424.36531 0
+["pdflatex"] 1778693780.23514 "c:/LaTex/proyecto_Potencia/Proyecto_Potencia/Proyecto_Potencia_Elizondo_Rodriguez_Smith.tex" "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.pdf" "Proyecto_Potencia_Elizondo_Rodriguez_Smith" 1778693782.76975 0
+  "Análisis de Planta Gvd(s).png" 1778632840 70333 d3d753ade882cdc85fc460de421fe2af ""
   "C:/Users/pablo/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1777498834 84158 d77284a6843bde1e4b9764f09fb2e89e ""
   "C:/Users/pablo/AppData/Local/MiKTeX/miktex/data/le/pdftex/pdflatex.fmt" 1773891195 13333849 4a0400ba1b5d22fbf93ff37f9e9d64d3 ""
   "C:/Users/pablo/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/base/8r.enc" 1458473887 4993 80dc9bab7f31fb78a000ccfed0e27cab ""
@@ -122,11 +123,16 @@
   "C:/Users/pablo/AppData/Local/Programs/MiKTeX/tex/latex/tools/tabularx.sty" 1761901070 7243 a2c17f18e2c9b702b84fad03d5f9c78b ""
   "C:/Users/pablo/AppData/Local/Programs/MiKTeX/tex/latex/url/url.sty" 1388490452 12796 8edb7d69a20b857904dd0ea757c14ec9 ""
   "C:/Users/pablo/AppData/Local/Programs/MiKTeX/tex/latex/xcolor/xcolor.sty" 1729265222 55384 b454dec21c2d9f45ec0b793f0995b992 ""
-  "Proyecto_Potencia_Elizondo_Rodriguez_Smith.tex" 1778458416 35076 045af4fa04e2c99a35c31af8c2d1f36d ""
-  "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.aux" 1778458423 7190 54a062f55f6e1523f269500940ae42f6 "pdflatex"
-  "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.bbl" 1778458422 1889 c6662def16116ac3f43c0ed73a48a7d4 "bibtex build/Proyecto_Potencia_Elizondo_Rodriguez_Smith"
-  "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.out" 1778458423 5415 af1544aaf4b0d73df2746d1dfa8e45a9 "pdflatex"
-  "c:/LaTex/proyecto_Potencia/Proyecto_Potencia/Proyecto_Potencia_Elizondo_Rodriguez_Smith.tex" 1778458416 35076 045af4fa04e2c99a35c31af8c2d1f36d ""
+  "Lazo abierto y cerrado.png" 1778632840 73232 69282780af01533195e9e58520e529b8 ""
+  "Proyecto_Potencia_Elizondo_Rodriguez_Smith.tex" 1778693768 47155 b0416f5d5b785f760a30e0c2cd73c9fa ""
+  "Simulación discreta del lazo cerrado.png" 1778632840 83588 fa3f5bc1d1aee2aabb7b351484c83722 ""
+  "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.aux" 1778693781 10188 74ca3149a575feaed9f9fd0f47774744 "pdflatex"
+  "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.bbl" 1778693780 2265 6beb0be1cd55cf1dc8814b2d4397d67f "bibtex build/Proyecto_Potencia_Elizondo_Rodriguez_Smith"
+  "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.out" 1778693781 5980 28906eae6dffc54138e7a8376963b25b "pdflatex"
+  "c:/LaTex/proyecto_Potencia/Proyecto_Potencia/Proyecto_Potencia_Elizondo_Rodriguez_Smith.tex" 1778693768 47155 b0416f5d5b785f760a30e0c2cd73c9fa ""
+  "fig/Eon_Eoff_MOSFET.png" 1778689976 75281 6ad7f3918bca6cda3f2aed4e324f58aa ""
+  "fig/VDS_vs_ID_MOSFET.png" 1778690015 105001 5a641c8be7ce0fccfbcc9bcfca7c149e ""
+  "fig/VF_vs_IF_Diodo.png" 1778692835 98105 2ed4b894e70e4a2e1ef511e18660d63b ""
   (generated)
   "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.aux"
   "build/Proyecto_Potencia_Elizondo_Rodriguez_Smith.log"

@@ -501,9 +501,128 @@ en inversa la misma tensión $V_{o}$ y soportar la máxima corriente que circula
     \label{tab:diodo_comparison}
 \end{table}
 
+\subsection{Selección de componentes pasivos}
+Dado que el proyecto requiere de la implementación física del convertidor, se necesita adaptar la selección
+de los componentes y algunas condiciones de operación en base a lo que ofrece el mercado local.
 
+Para la carga del convertidor, se seleccionó una resistencia de 100 $\Omega$, que soporta una potencia máxima de hasta
+10 W; además, para la verificación del comportamiento ante variaciones de carga, se seleccionó una resistencia 
+de 1 k$\Omega$ que soporta hasta 5 W de potencia, la cual se puede colocar en paralelo con la resistencia de 100 $\Omega$,
+obteniendo una resistencia equivalente de 90.91 $\Omega$. Con esto, se logra aumentar la potencia de salida total hasta 
+6.34 W y cumple con la potencia mínima de salida de 5 W. 
+
+El inductor es el componente que determina la frecuencia de conmutación a la que operará el convertidor. Se lograron
+adquirir inductores toroidales de 100 $\mu$H cada uno, por lo que se tomó la decisión de colocar dos de estos en serie para lograr
+una inductancia equivalente de 200 $\mu$H. Tomando como referencia la Ecuación \ref{eq:inductancia_minima_num}, el convertidor se 
+puede operar a una frecuencia de conmutación de 50 kHz para dar un buen margen de operación en modo de corriente continua, con esta 
+frecuencia la inductancia mínima requerida para este modo de operación es de 125 $\mu$H.
+
+Para el capacitor, considerando la Ecuación \ref{eq:capacitancia_minima_num}, el valor mínimo de capacitancia para operar con una frecuencia de conmutación de 50 kHz, 
+es de 2.67 $\mu$F. Para esta aplicación se seleccionó un capacitor electrolítico de 47 $\mu$F que soporta hasta 50 V, de un valor comercial disponible y que cumple con el requisito mínimo establecido,
+con esto se logra un valor de rizado de tensión en la salida del 0.28 \% aproximadamente (recordando que depende de la carga y del ciclo de trabajo).
 
 \subsection{Análisis de pérdidas y eficiencia}
+Este proceso se planteó mediante simulación en PLECS. Para ambos modelos se tomó la información disponible en las hojas de 
+datos de los semiconductores. 
+
+En el caso del MOSFET, las pérdidas por conducción según su hoja de datos, se rigen por la siguiente gráfica que relaciona 
+la tensión entre sus terminales $V_{DS}$ y la corriente que circula por el dispositivo $I_D$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.91\columnwidth]{fig/VDS_vs_ID_MOSFET.png}
+    \caption{Tensión $V_{DS}$ vs corriente $I_D$ del MOSFET}
+    \label{fig:VDS_vs_ID_MOSFET}
+\end{figure}
+
+La gráfica muestra que para valores de corriente pequeños como lo es en esta aplicación, 
+es de esperar que las pérdidas totales por conducción sean bajas. Por lo que no debería
+de presentarse un aumento considerable en la temperatura.
+
+En cuanto al análisis de pérdidas por conmutación. Se siguió el procedimiento descrito en el manual
+de Infineon \cite{InfineonMOSFETLosses2006}. Obteniendo los siguientes resultados que se colocaron
+en el modelo de PLECS. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.91\columnwidth]{fig/Eon_Eoff_MOSFET.png}
+    \caption{Pérdidas de energía por conmutación del MOSFET}
+    \label{fig:Eon_Eoff_MOSFET}
+\end{figure}
+
+Para el diodo, las pérdidas por conducción se ingresaron al modelo de PLECS por medio de la siguiente gráfica
+obtenida de su hoja de datos \cite{BYC30-600P_NXP}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.91\columnwidth]{fig/VF_vs_IF_Diodo.png}
+    \caption{Corriente $I_F$ vs tensión $V_F$ del diodo}
+    \label{fig:IF_vs_VF_Diodo}
+\end{figure}
+
+Para las pérdidas por conmutación. En en el diodo las pérdidas de apagado son despreciables
+según se explica en el manual de Infineon \cite{InfineonMOSFETLosses2006}, mientras que las pérdidas de encendido
+se podrían llegar a considerar despreciables considerando que el diodo va a operar con corrientes bastante bajas
+en comparación con las condiciones para las que fue diseñado; sin embargo, se decidió aproximar el modelo utilizando los datos
+para puntos de operación bajos (baja corriente y tensión).
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabularx}{\columnwidth}{
+        >{\hsize=1.3\hsize}X 
+        >{\hsize=0.70\hsize}X 
+        >{\hsize=0.75\hsize}X 
+        >{\hsize=0.75\hsize}X
+    }
+        \toprule
+                           & 0~A & 1~A  & 20~A  \\
+        \midrule
+        $24~\mathrm{V}$    & $0~\mu\mathrm{J}$  & $0.072~\mu\mathrm{J}$  & $0.15~\mu\mathrm{J}$  \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Pérdidas de energía por encendido del diodo}
+    \label{tab:diodo_Eon}
+\end{table}
+
+
+Dado que la corriente promedio que circula por el circuito, es bastante baja en comparación con las condiciones de prueba
+utilizadas en las hojas de datos de los semiconductores adquiridos, es de esperar que las pérdidas sean bajas en ambos casos y que ninguno de los dipositivos 
+llegue a presentar altas temperaturas de operación. Según la simulación realizada en PLECS, las pérdidas de ambos semiconductores son las siguientes.
+
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabularx}{\columnwidth}{
+        >{\hsize=1.3\hsize}X 
+        >{\hsize=0.70\hsize}X 
+        >{\hsize=0.75\hsize}X 
+        >{\hsize=0.75\hsize}X
+    }
+        \toprule
+        Categoría                & MOSFET & Diodo  \\
+        \midrule
+        $P_{on}~\mathrm{[mW]}$    & $76$  & $3$     \\
+        $P_{off}~\mathrm{[mW]}$   & $30$  & $0$     \\
+        $P_{sw}~\mathrm{[mW]}$    & $106$ & $3$     \\
+        $P_{cond}~\mathrm{[mW]}$  & $11$  & $259$   \\
+        $P_{total}~\mathrm{[mW]}$ & $117$ & $262$   \\
+
+        \bottomrule
+    \end{tabularx}
+    \caption{Pérdidas en los semiconductores (simulación)}
+    \label{tab:semiconductors_losses}
+\end{table}
+
+En base a lo anterior, y tomando como referencia los valores presentes en la simulación. La eficiencia
+del convertidor está dada por lo siguiente.
+
+\begin{equation}
+    \eta = \frac{P_{out}}{P_{in}} = \frac{5.756 - 0.379}{5.756} \cdot 100 = 93.4\%
+\end{equation}
+
+
 
 \section{Modelado y análisis}
 
