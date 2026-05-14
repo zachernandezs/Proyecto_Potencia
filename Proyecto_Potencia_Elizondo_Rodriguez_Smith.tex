@@ -262,6 +262,7 @@ por la siguiente ecuación \cite{hart2011power}.
 
 \begin{equation}
     V_{out} = \frac{V_{in}}{1 - D}
+    \label{eq:boost_relation}
 \end{equation}
 
 Considerando que la tensión de salida es fija, el rango de valores para el ciclo de 
@@ -830,6 +831,133 @@ Finalmente, se verificó que la función de transferencia obtenida desde el mode
 
 
 \section{Validación del modelo}
+Como parte del análisis del diseño presentado, se tienen los siguientes procesos de 
+validación del funcionamiento del convertidor. 
+
+\subsection{Funcionamiento de la implementación física}
+Mediante pruebas de laboratio se verificó el correcto funcionamiento del convertidor, los componentes resistivos 
+y capacitivos tienen los siguientes valores experimentales. 
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabularx}{\columnwidth}{
+        >{\hsize=0.75\hsize}X 
+        >{\hsize=0.75\hsize}X 
+        >{\hsize=0.75\hsize}X 
+        >{\hsize=0.75\hsize}X
+    }
+        \toprule
+        $R_1~\mathrm{[\Omega]}$ & $R_2~\mathrm{[\Omega]}$ & $R_1~||~R_2~\mathrm{[\Omega]}$ & $C_1~\mathrm{[\mu F]}$\\
+        \midrule
+        $102.4$               & $977.8$               & $92.43$                      & $46.83$             \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Valores experimentales de R y C}
+    \label{tab:componentes_experimentales}
+\end{table}
+
+Luego, para la carga base de $R_1 = 102.4~\mathrm{\Omega}$, los datos obtenidos en la salida según variaciones de tensión
+y ciclo de trabajo, son los siguientes. 
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabularx}{\columnwidth}{
+        >{\hsize=0.75\hsize}X 
+        >{\hsize=0.75\hsize}X 
+        >{\hsize=0.75\hsize}X 
+        >{\hsize=0.75\hsize}X
+    }
+        \toprule
+        Tensión de entrada $[\mathrm{V}]$& D $[\%]$ & Tensión en la salida $[\mathrm{V}]$ & Potencia de salida $[\mathrm{W}]$ \\
+        \midrule
+        $12$                             & $50$     & $23.35$                             & $5.139$                           \\
+        $10$                             & $58.33$  & $23.29$                             & $5.297$                           \\
+        $8$                              & $66.67$  & $22.94$                             & $5.139$                           \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Comportamiento del convertidor con la carga base $R_1$}
+    \label{tab:comportamiento_carga_base}
+\end{table}
+
+Al variar la carga, colocando la resistencia $R_2$ en paralelo con $R_1$, se obtiene una carga equivalente de
+$92.43~\mathrm{\Omega}$, obteniendo los siguientes resultados. 
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabularx}{\columnwidth}{
+        >{\hsize=0.75\hsize}X 
+        >{\hsize=0.75\hsize}X 
+        >{\hsize=0.75\hsize}X 
+        >{\hsize=0.75\hsize}X
+    }
+        \toprule
+        Tensión de entrada $[\mathrm{V}]$& D $[\%]$ & Tensión en la salida $[\mathrm{V}]$ & Potencia de salida $[\mathrm{W}]$ \\
+        \midrule
+        $12$                             & $50$     & $23.30$                             & $5.874$                           \\
+        $10$                             & $58.33$  & $23.16$                             & $5.803$                           \\
+        $8$                              & $66.67$  & $23.21$                             & $5.828$                           \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Comportamiento del convertidor con la carga equivalente}
+    \label{tab:comportamiento_carga_equivalente}
+\end{table}
+
+En ambas tablas se observa que el convertidor responde de manera correcta ante variaciones de tensión de entrada y
+variaciones de carga, esto ajustando el ciclo de trabajo manualmente según la Ecuación \ref{eq:boost_relation}. Además, 
+la potencia de salida se mantiene siempre por encima de los 5 W mínimos que establecen las especificaciones de diseño, 
+esto con una desviación de $840~\mathrm{mV}$ para el peor de los escenarios, que equivale al 3.5 \% de la tensión de salida nominal de 24 V.
+
+Se muestra a continuación una imagen obtenida en el laboratorio, que muestra la forma de la tensión de salida del convertidor.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.91\columnwidth]{fig/Salida_circuito.PNG}
+    \caption{Forma de la tensión de salida del convertidor (experimental)}
+    \label{fig:salida_convertidor_laboratorio}
+\end{figure}
+
+Fue necesario pausar la muestra del osciloscopio para poder obtener una imagen nítida, ya que había bastante ruido presente en el momento
+de la prueba, debido a esto es que también se mide un valor máximo de 24.4 V. No obstante, lo más relevante de la Figura \ref{fig:salida_convertidor_laboratorio},
+es visualizar que la forma de la señal de salida que se logró captar tiene una buena forma para una señal CD, considerando que la escala de visualización
+es bastante pequeña también.
+
+\subsection{Funcionamiento a nivel de simulación}
+Por medio de la simulación es posible visualizar de una mejor manera algunas señales como el rizado en la salida, o bien la corriente
+en la bobina. Además, se puede tener un aproximado de cómo va a evolucionar la temperatura en los componentes.
+
+La respuesta del convertidor ante una entrada tipo escalón es la siguiente.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.91\columnwidth]{fig/Vo_transiente.png}
+    \caption{Respuesta ante un escalón (simulación)}
+    \label{fig:respuesta_vout}
+\end{figure}
+
+Como se observa en la gráfica, existe un sobreimpulso bastante considerable, que se reduce rápidamente; posteriormente,
+el sistema presenta ciertas oscilaciones que van disminuyendo hasta que la señal converge al valor final cercano a los
+24 V deseados en la salida. La forma de la respuesta transitoria es propia de un sistema subamortiguado. 
+
+Luego el rizado en la tensión de salida, junto con el comportamiento de la corriente en el inductor, se pueden
+ver en la siguiente gráfica. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.91\columnwidth]{fig/Vo_IL_rizados.png}
+    \caption{Comportamiento de la tensión de salida y la corriente en el inductor (simulación)}
+    \label{fig:Vo_IL}
+\end{figure}
+
+Se nota claramente como la corriente en la bobina es propia de un circuito que opera en modo de corriente continua, ya que
+esta no llega a tocar el cero en ningún momento, lo cual valida los cálculos realizados para la selección del inductor. La tensión
+de salida por su parte, presenta un rizado bastante pequeño de hasta $50~\mathrm{mV}$ en su totalidad, junto con un valor
+medio un poco inferior a los 24 V. 
+
+
+\subsection{Comparativa de modelo contra simulación}
 
 \section{Diseño del control}
 
