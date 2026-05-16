@@ -13,6 +13,9 @@
 \usepackage{tabularx}
 \usepackage[hidelinks]{hyperref}
 
+\usepackage{tikz}
+\usetikzlibrary{shapes, arrows.meta, positioning}
+
 \usepackage{caption}
 \captionsetup[table]{labelfont=bf, labelsep=newline, justification=centering}
 
@@ -201,10 +204,21 @@ retardos en el proceso de computación en el procesador RISC-V, entre otros.
 
 \subsubsection{Métricas de comparación}
 Algunas de las herramientas que permiten medir el comportamiento del convertidor son: el error en régimen permanente, el cual mide la diferencia
-porcentual entre la entrada deseada y la entrada real obtenida; el tiempo de establecimiento, que corresponde al tiempo que le tarda al sistema estabilizar 
-la salida en el rango de error $< 5\%$; el sobrepico, que es la máxima desviación transitoria respecto al valor nominal deseado \cite{nise2015control}.
+porcentual entre la entrada deseada y la entrada real obtenida, según la Ecuación 8.
 
-Para las pruebas en la implementación física, se puedes hacer variaciones en la carga y evaluar la respuesta del circuito ante estas variaciones. Así como
+
+\begin{equation}
+\begin{aligned}
+    E(s) &= R(s) - C(s)  \\
+\end{aligned}
+\label{steady_State_error}
+\end{equation}
+
+
+Además, está el tiempo de establecimiento, que corresponde al tiempo que le tarda al sistema estabilizar 
+la salida en el rango de error $< 5\%$; y el sobrepico, que es la máxima desviación transitoria respecto al valor nominal deseado \cite{nise2015control}.
+
+Para las pruebas en la implementación física, se pueden hacer variaciones en la carga y evaluar la respuesta del circuito ante estas variaciones. Así como
 variar la tensión de entrada en el rango adecuado, verificando que la salida responda según debería.
 
 
@@ -474,8 +488,14 @@ estas pérdidas, ante una corriente circulando por el semiconductor.
 
 \setlength{\parskip}{1em}
 
-En cuanto al diodo, este también debe de cumplir con ciertos requerimientos mínimos. Bloqueando
-en inversa la misma tensión $V_{o}$ y soportar la máxima corriente que circula por el inductor. Se tiene el FSF10A40 y el BYC30-600P, ambos diodos capaces de soportar mucho más que 24 V y la corriente del inductor. Por su menor tiempo de recuperación, mayor corriente de polarización directa promedio y mayor tensión de ruptura, se selecciona el diodo BYC30-600P para este circuito.
+En cuanto al diodo, este también debe de cumplir con ciertos requerimientos mínimos bloqueando
+en inversa la misma tensión $V_{o}$ y soportar la máxima corriente que circula por el inductor. 
+Se tiene el FSF10A40 \cite{FSF10A40_Datasheet} y el BYC30-600P \cite{BYC30-600P_NXP}, ambos diodos 
+capaces de soportar bastante más de 24 V en inversa y la corriente máxima en la bobina. 
+
+Considerando que es necesario constuir físicamente el circuito, debido a la disponibilidad de los productos 
+se seleccionó al diodo BYC30-600P, que además soporta un rango más amplio de corriente en caso de que ocurran
+picos.
 
 \begin{table}[H]
     \centering
@@ -617,7 +637,7 @@ llegue a presentar altas temperaturas de operación. Según la simulación reali
 \end{table}
 
 En base a lo anterior, y tomando como referencia los valores presentes en la simulación. La eficiencia
-del convertidor está dada por lo siguiente.
+del convertidor es aproximadamente:
 
 \begin{equation}
     \eta = \frac{P_{out}}{P_{in}} = \frac{5.756 - 0.379}{5.756} \cdot 100 = 93.4\%
