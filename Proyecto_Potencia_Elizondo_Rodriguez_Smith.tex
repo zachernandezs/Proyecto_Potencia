@@ -1081,6 +1081,88 @@ medio un poco inferior a los 24 V.
 
 \subsection{Comparativa de modelo contra simulación}
 
+Para validar el modelo promedio linealizado obtenido analíticamente, se compara su comportamiento
+con los resultados de la simulación del convertidor en PLECS. La comparación se organiza en tres
+aspectos: ganancia estática, comportamiento transitorio y rizado de tensión de salida.
+
+\subsubsection{Ganancia estática}
+
+A partir de la función de transferencia $G_{vd}(s)$ obtenida en la ecuación
+\ref{eq:gvd_obtenida}, la ganancia estática del modelo analítico es:
+
+\begin{equation}
+    K = \lim_{s \to 0} G_{vd}(s)
+    = \frac{1.277 \times 10^9}{2.66 \times 10^7}
+    \approx 48~\mathrm{V/unidad}
+\end{equation}
+
+Esto indica que una perturbación de $\Delta d = 0.01$ sobre el ciclo de trabajo nominal
+debería producir un cambio en estado estacionario de:
+
+\begin{equation}
+    \Delta V_o = K \cdot \Delta d = 48 \times 0.01 = 0.48~\mathrm{V}
+\end{equation}
+
+La simulación en PLECS confirma que la tensión de salida converge a un valor
+consistente con esta predicción, lo cual valida la ganancia estática del modelo
+linealizado alrededor del punto de operación $V_{in}=12~\mathrm{V}$,
+$V_o=24~\mathrm{V}$, $D=0.5$.
+
+\subsubsection{Comportamiento transitorio}
+
+El modelo analítico predice un sistema de segundo orden subamortiguado, con una
+frecuencia natural de $f_0 = 820.78~\mathrm{Hz}$ y un factor de calidad de $Q = 24.24$.
+Un factor de calidad de este valor implica un amortiguamiento muy bajo:
+
+\begin{equation}
+    \zeta = \frac{1}{2Q} = \frac{1}{2 \times 24.24} \approx 0.0206
+\end{equation}
+
+lo que corresponde a un sistema con oscilaciones pronunciadas antes de alcanzar
+el estado estacionario. Este comportamiento es consistente con lo observado en la
+simulación de la Figura \ref{fig:respuesta_vout}, donde la tensión de salida presenta
+un sobreimpulso significativo seguido de oscilaciones amortiguadas que convergen
+al valor final. La forma de la respuesta transitoria confirma cualitativamente
+que el modelo captura correctamente la dinámica dominante del convertidor.
+
+\subsubsection{Rizado de tensión de salida}
+
+El modelo analítico estima un rizado de tensión de salida de $0.21~\%$ para las
+condiciones nominales de operación ($f_{sw} = 50~\mathrm{kHz}$, $C = 47~\mu\mathrm{F}$,
+$R_L = 100~\Omega$, $D = 0.5$). La simulación en PLECS, mostrada en la Figura
+\ref{fig:Vo_IL}, reporta un rizado pico a pico de hasta $50~\mathrm{mV}$ sobre
+una tensión media cercana a los $24~\mathrm{V}$, lo que equivale aproximadamente a:
+
+\begin{equation}
+    \Delta V_{o,\%} = \frac{50 \times 10^{-3}}{24} \times 100 \approx 0.208~\%
+\end{equation}
+
+Este resultado presenta una concordancia excelente con la predicción analítica,
+lo cual confirma que los valores de inductor y capacitor seleccionados son adecuados
+para mantener el rizado dentro de la especificación del $5~\%$.
+
+Adicionalmente, la simulación muestra que la corriente en el inductor no llega
+a cero en ningún momento del ciclo de conmutación, lo que valida la operación
+en modo de conducción continua (CCM), condición sobre la cual se fundamenta
+el modelo promedio utilizado.
+
+\subsubsection{Discrepancias observadas}
+
+A pesar de la buena concordancia en ganancia estática y rizado, el modelo promedio
+presenta algunas limitaciones. Al tratarse de una linealización alrededor de un
+punto de operación, no captura la respuesta ante grandes perturbaciones ni los
+efectos asociados al rizado de conmutación. Asimismo, el modelo no incluye
+resistencias parásitas del inductor ni caídas de tensión en los semiconductores,
+por lo que la tensión media simulada en PLECS resulta ligeramente inferior a los
+$24~\mathrm{V}$ ideales, diferencia que sí es visible en la Figura \ref{fig:Vo_IL}.
+Estas discrepancias son esperables y no invalidan el uso del modelo linealizado
+como base para el diseño del controlador.
+
+
+
+
+
+
 \section{Diseño del control}
 
 El objetivo del sistema de control es regular la tensión de salida del convertidor Boost alrededor de su valor de referencia. Por esta razón, la variable controlada se define como la tensión de salida $v_o$, mientras que la variable manipulada corresponde al ciclo de trabajo $D$ aplicado al PWM del convertidor.
@@ -1364,8 +1446,97 @@ A partir de las tres pruebas realizadas, se verifica que el controlador PI discr
 
 
 
-\section{Análisis de resultados}
+\section{Análisis de resultados y conclusiones}
 
+\subsection{comparación entre modelo, simulación e implementación}
+
+Esta sección contrasta los resultados obtenidos desde tres perspectivas: el modelo
+promedio linealizado, la simulación en PLECS y la implementación física del convertidor
+en laboratorio. La comparación se centra en la tensión de salida en estado estacionario,
+que es la variable de mayor relevancia para verificar la regulación del sistema, y en
+las limitaciones observadas al extender el análisis hacia el comportamiento dinámico.
+
+\subsubsection{Tensión de salida en estado estacionario}
+
+La Tabla \ref{tab:comparacion_modelo_sim_lab} resume la tensión de salida obtenida
+en cada una de las tres fuentes para distintas condiciones de entrada, con la carga
+base de $R_1 \approx 100~\Omega$ y ciclo de trabajo ajustado según la relación
+ideal del convertidor Boost.
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabularx}{\columnwidth}{
+        >{\hsize=0.7\hsize}X
+        >{\hsize=0.7\hsize}X
+        >{\hsize=0.85\hsize}X
+        >{\hsize=0.85\hsize}X
+        >{\hsize=0.9\hsize}X
+    }
+        \toprule
+        $V_{in}~[\mathrm{V}]$ & $D~[\%]$ & Modelo $[\mathrm{V}]$ & Simulación $[\mathrm{V}]$ & Lab. $[\mathrm{V}]$ \\
+        \midrule
+        $12$ & $50.00$ & $24.00$ & $\approx 24$ & $23.35$ \\
+        $10$ & $58.33$ & $24.00$ & $\approx 24$ & $23.29$ \\
+        $8$  & $66.67$ & $24.00$ & $\approx 24$ & $22.94$ \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Comparación de tensión de salida: modelo, simulación y laboratorio}
+    \label{tab:comparacion_modelo_sim_lab}
+\end{table}
+
+El modelo analítico predice $V_o = 24~\mathrm{V}$ exactos para todos los puntos de
+operación, resultado esperado dado que la relación ideal $V_o = V_{in}/(1-D)$ no
+considera pérdidas. La simulación en PLECS, al incluir modelos electrotérmicos de los
+semiconductores, reproduce valores muy cercanos a los $24~\mathrm{V}$, con desviaciones
+pequeñas atribuibles a las caídas de tensión en el MOSFET y el diodo.
+
+La implementación física muestra desviaciones más pronunciadas, con un error máximo
+de $840~\mathrm{mV}$ para $V_{in} = 8~\mathrm{V}$, equivalente al $3.5~\%$ de la
+tensión nominal. Estas desviaciones se mantienen dentro de la especificación de
+$\pm 5~\%$ establecida para el diseño, por lo que el convertidor cumple con el
+criterio de regulación en todos los puntos evaluados. Las discrepancias respecto al
+modelo se explican principalmente por las resistencias parásitas del inductor, las
+caídas de tensión directa del diodo y las resistencias de encendido del MOSFET,
+efectos que el modelo ideal no contempla y que se acentúan a menor tensión de entrada,
+donde el ciclo de trabajo es mayor y el MOSFET conduce durante una fracción más
+larga del período.
+
+\subsubsection{Comportamiento dinámico}
+
+El modelo analítico y la simulación en PLECS permiten caracterizar con detalle el
+comportamiento transitorio del sistema. El modelo predice una respuesta de segundo
+orden subamortiguada con $\zeta \approx 0.0206$ y $f_0 = 820.78~\mathrm{Hz}$, lo
+que implica oscilaciones pronunciadas antes de alcanzar el estado estacionario. La
+simulación confirma cualitativamente este comportamiento mediante la respuesta ante
+escalón mostrada en la Figura \ref{fig:respuesta_vout}.
+
+Sin embargo, en la implementación física esta caracterización resulta difícil de
+realizar con precisión. La imagen obtenida en el laboratorio (Figura
+\ref{fig:salida_convertidor_laboratorio}) muestra la forma de la tensión de salida
+en estado estacionario, pero el nivel de ruido presente en la señal y la
+necesidad de pausar el osciloscopio para capturar una imagen nítida impiden extraer
+métricas temporales confiables como el tiempo de asentamiento o el sobreimpulso. Esta
+limitación es inherente al entorno de laboratorio con los equipos disponibles y no
+invalida los resultados de regulación en estado estacionario, que sí fueron verificados
+de forma directa.
+
+\subsubsection{Síntesis de la comparación}
+
+Los tres enfoques son consistentes entre sí dentro de sus respectivas limitaciones.
+El modelo provee una referencia analítica ideal útil para el diseño del controlador,
+la simulación incorpora efectos de pérdidas y permite observar el transitorio con
+detalle, y la implementación física confirma la operación correcta del convertidor
+dentro de las especificaciones de regulación establecidas. La principal fuente de
+discrepancia entre modelo e implementación son los efectos no ideales de los
+componentes, cuya influencia aumenta conforme la tensión de entrada se aleja del
+punto de operación nominal.
+
+\subsection{Identificación de limitaciones del sistema}
+
+\subsection{Discusión técnica del desempeño}
+
+\subsection{Propuesta de mejora}
 
 
 % -------------------------------------------------------
