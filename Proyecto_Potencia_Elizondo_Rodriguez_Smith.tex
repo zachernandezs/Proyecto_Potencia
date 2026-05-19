@@ -48,6 +48,7 @@ zachernandezs@estudiantec.cr}
 
 \maketitle
 
+
 \section{Introducción}
 
 El presente informe documenta el diseño, modelado, simulación e implementación 
@@ -747,6 +748,60 @@ del convertidor es aproximadamente:
     \eta = \frac{P_{out}}{P_{in}} = \frac{5.756 - 0.379}{5.756} \cdot 100 = 93.4\%
 \end{equation}
 
+\subsection{Consideraciones Adicionales}
+
+Para realizar una conexión exitosa con la tarjeta FPGA, se debe considerar aislar ambos circuitos uno del otro y considerar las tensiones y corrientes de trabajo de la tarjeta. 
+
+El aislamiento galvánico entre ambos circuitos se realizó por medio de dos optoacopladores 4N35, fabricados por Vishay. Este optoacoplador separa la etapa de la FPGA de la etapa de potencia, protegiendo los sistemas digitales delicados de la tarjeta. El dispositivo funciona transmitiendo la información que recibe de un lado al otro por medio de un LED infrarrojo de galio arsénico y un fototransistor NPN. Las características principales del optoacoplador se observan en la tabla (\ref{tab:4N35}).
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabularx}{\columnwidth}{
+        >{\hsize=1.3\hsize}X 
+        >{\hsize=0.70\hsize}X 
+        >{\hsize=0.75\hsize}X 
+        >{\hsize=0.75\hsize}X
+    }
+        \toprule
+        Parámetro                & 4N35  \\
+        \midrule
+        $V_{F}~\mathrm{[V]}$    & $1.3 - 1.5$ \\
+        $C_{j}~\mathrm{[pF]}$   & $50$ \\
+        $I_{C}~\mathrm{[mA]}$    & $50$\\
+        $t_{on},\;t_{off}~\mathrm{[\mu s]}$  & $10$ \\
+
+        \bottomrule
+    \end{tabularx}
+    \caption{Parámetros del optoacoplador 4N35.}
+    \label{tab:4N35}
+\end{table}
+
+El optoacoplador tiene un tiempo de conmutación de $10\mu s$. Esto indica que la frecuencia máxima de conmutación es de 100 kHz, sin contar por los tiempos muertos por conmutación. Una estimación conservadora propone una máxima frecuencia de conmutación de 10 kHz.
+Para mejorar esta frecuencia al valor requerido (50 kHz), se puede utilizar una resistencia de descarga entre la base y el emisor del transistor BJT, con el objetivo de descargar rápidamente la carga almacenada en la capacitancia parásita de la juntura ($C_j$) y mejorar el tiempo de apagado del transistor.
+
+Esta resistencia se estimó limitando la corriente de base efectiva para evitar saturación del fototransistor.
+Empíricamente, se encontró que un valor entre 50 y 100 kHz funciona para mejorar el tiempo de caida de la señal, haciendo posible la transmisión de datos a una frecuencia de 50 kHz.
+
+Este optoacoplador con la resistencia de descarga fueron colocados entre la salida de PWM de la tajeta FPGA y la entrada a la compuerta del MOSFET. Antes de alimentar la señal aislada al MOSFET, primero se utilizó un IR2110 Gate Driver.
+
+Este driver se encarga de elevar la tensión y corriente proporcionada por la señal PWM (3.3 V) a una capaz de conmutar el MOSFET IRF1010EZ que se utiliza en el convertidor. Por esto, se emplea el driver como etapa intermedia entre el dispositivo de aislamiento y el dispositivo de conmutación.
+
+Por último, se utiliza un factor de escalamiento $k$ para reacomodar el rango de salida del convertidor a uno que pueda discretizar el periférico XADC de la tarjeta FPGA. Este factor $k$ se calculó tomando en cuenta el rango de salida del convertidor (24 V $\pm$ 5 \%) y el rango de entrada del XADC (0 a 1 V).
+
+Se toma como valor superior de salida del convertidor 30 V, para manejar un margen de seguridad en caso de transitorios o picos de tensión, y se utilizó la siguiente fórmula para encontrar el factor $k$ del divisor:
+
+\begin{equation}
+	V_{ADC} = kV_o, \quad k = \frac{1}{30}
+\end{equation}
+
+\begin{equation}
+	k = \frac{R_2}{R_1+R_2}
+\end{equation}
+
+Asumiendo $R_2$ igual a 10 k$\Omega$, se puede determinar que $R_1$ debe tener un valor de 290 k$\Omega$. Ajustando a un valor disponible comercialmente, se tiene $R_1$ igual a 300 k$\Omega$.
+
+Este divisor de tensión sería seguido por una etapa de acople de impedancias (seguidor de tensión) para reducir la impedancia de la fuente. Seguidamente, se conectaría la entrada del XADC.
 
 
 \section{Modelado y análisis}
@@ -1532,11 +1587,100 @@ discrepancia entre modelo e implementación son los efectos no ideales de los
 componentes, cuya influencia aumenta conforme la tensión de entrada se aleja del
 punto de operación nominal.
 
+
 \subsection{Identificación de limitaciones del sistema}
+
+A partir del trabajo realizado en las etapas de diseño, modelado, simulación e implementación física, se identifican varias limitaciones del sistema a documentar a continuación.
+
+\subsubsection{Limitaciones del modelo}
+
+El modelo promedio linealizado utilizado para el diseño del controlador asume una operación en modo de conducción continua alrededor de un único punto de operación. Esto implica que su validez se reduce ante grandes perturbaciones del ciclo de trabajo o ante cambios significativos en la tensión de entrada, donde el sistema se aleja del entorno lineal. El modelo tampoco incorpora resistencias parásitas del inductor, caídas de tensión en los semiconductores ni la resistencia equivalente serie del capacitor. Adicionalmente, el factor de calidad elevado obtenido para la planta ($Q = 24.24$) corresponde a un modelo idealizado.
+
+\subsubsection{Limitaciones del convertidor físico}
+
+La implementación física presenta una desviación en estado estacionario de hasta 840 mV respecto al valor normal de 24 V. Esta desviación se mantiene dentro de la especificación de $\pm 5$ \%, pero crece a menor tensión de entrada. Esto es consistente con la mayor fracción del periodo en la que el MOSFET conduce, durante la cual la caída por la resistencia $R_{DS(on)}$ y por las resistencias parásitas del inductor reduce la tensión efectiva de salida.
+
+Además, la frecuencia de conmutación de 50 kHz requiere de un manejo cuidadoso de la señal PWM entre la FPGA y el MOSFET. Los optoacopladores 4N35 utilizados para el aislamiento galvánico tienen un tiempo de conmutación nominal de 10\,$\mu$s (tabla \ref{tab:4N35}), lo que en condiciones estándar limitaría la frecuencia útil a alrededor de 10 kHz. La resistencia de descarga entre base y emisor del fototransistor permitió empujar este límite hasta los 50 kHz requeridos, pero esta operación se realiza fuera del rango recomendado por la hoja de datos, lo que introduce una distorsión en el ciclo de trabajo aplicado al MOSFET.
+
+
+
+
+\subsubsection{Limitaciones del control digital implementado}
+
+El diseño del controlador asumió una resolución uniforme del PWM y un muestreo perfectamente regular a 5 kHz. En una implementación digital sobre el procesador RISC-V, el ciclo de trabajo del PWM se aplica como un valor entero en porcentaje (0 a 100), lo que introduce una resolución de aproximadamente 0,24 V en la tensión de salida por cada paso unitario del registro de duty. Esta resolución es gruesa comparada con la ganancia estática del convertidor ($K = 48$), lo que se traduce en una diferencia en el seguimiento de la referencia bajo efecto de una perturbación. Además, el lazo digital opera a 5 kHz, una década por debajo de la frecuencia de conmutación, lo cual introduce retardo en el muestreo.
 
 \subsection{Discusión técnica del desempeño}
 
-\subsection{Propuesta de mejora}
+\subsubsection{Cumplimiento de las especificaciones}
+
+A partir de los resultados obtenidos, se verifica el cumplimiento de las especificaciones establecidas en la Tabla I. La tensión de salida se mantiene dentro de la banda de $\pm 5$ \% para todo el rango de tensión de entrada evaluado (8 V a 12 V). La potencia de salida supera los 5 W mínimos en todos los escenarios, alcanzando hasta 5,874 W con la carga equivalente. El rizado de tensión de salida medido en simulación (0,21 \%) es inferior al límite de 5 \% establecido, lo cual confirma que el dimensionamiento del capacitor de salida es adecuado. La frecuencia de conmutación seleccionada (50 kHz) supera el mínimo de 20 kHz especificado y la frecuencia del lazo de control (5 kHz) excede el requisito de 100 Hz, lo cual provee suficiente ancho de banda para regular la dinámica del convertidor.
+
+\subsubsection{Comportamiento dinámico y estabilidad}
+
+El controlador PI diseñado proporciona márgenes de estabilidad cómodos: un margen de fase de 77,7$^\circ$ y un margen de ganancia de 18,8 dB. La frecuencia de cruce de 822 Hz se ubica una década por debajo del cero en el semiplano derecho, respetando el criterio establecido al inicio del diseño. La respuesta simulada muestra un comportamiento sobreamortiguado, sin sobreimpulso apreciable, con tiempo de asentamiento del orden de 200 ms.
+
+La simulación completa en PLECS (Figuras 10, 11 y 12) confirma que el controlador regula efectivamente la tensión de salida ante variaciones de tensión de entrada y ante un cambio de carga de 100 $\Omega$ a 50 $\Omega$. En todos los casos la salida retorna al $\pm 5$ \% aceptable.
+
+\subsubsection{Diferencias entre etapas de validación}
+
+La comparación entre las tres etapas de validación (modelo, simulación e implementación) revela que cada nivel de validación introduce no idealidades adicionales que reducen la tensión de salida respecto a los 24 V ideales. El modelo predice 24 V exactos, la simulación con modelos electro-térmicos entrega valores muy cercanos a 24 V, y la implementación física muestra desviaciones de hasta 840 mV. Esta progresión es un resultado de la cantidad de efectos no ideales considerados en cada nivel.
+
+Es importante destacar que la implementación física se evaluó en lazo abierto, ajustando manualmente el ciclo de trabajo según la relación $D = 1 - V_{in}/V_o$. El controlador PI no pudo integrarse al hardware final, por lo que la corrección automática del error en estado estacionario no llegó a verificarse experimentalmente. Sin embargo, las pruebas de simulación con el controlador PI muestran que este llevaría la salida cerca de los 24 V ideales, reduciendo las diferencias observadas en las Tablas VIII y IX.
+
+\subsubsection{Eficiencia}
+
+La eficiencia estimada por simulación es del 93,4\,\%, valor coherente con un convertidor Boost de baja potencia operando con MOSFET y diodo de buena calidad. La distribución de pérdidas (Tabla V) muestra que el diodo es el componente que más disipa (262 mW), debido a las pérdidas de conducción. El MOSFET disipa menos (117 mW), repartidos de forma más equilibrada entre conducción y conmutación. Esta distribución sugiere que el camino más directo para mejorar la eficiencia sería seleccionar un diodo con menor $V_F$, por ejemplo, un diodo Schottky de bajo umbral.
+
+\subsection{Propuestas de mejora}
+
+A partir de las limitaciones identificadas y de la experiencia del desarrollo, se proponen las siguientes mejoras agrupadas por área.
+
+\subsubsection{Mejoras en el circuito de potencia}
+
+\paragraph{Sustitución del diodo por uno Schottky} El diodo BYC30-600P aporta la mayor parte de las pérdidas del convertidor (262 mW de 379 mW totales). Sustituirlo por un diodo Schottky de baja $V_F$ y reduciría las pérdidas de conducción del diodo. 
+
+\paragraph{Mejora del aislamiento de la señal PWM} El uso del 4N35 con resistencia de descarga opera fuera del rango recomendado del componente y distorsiona el ciclo de trabajo aplicado. Sustituirlo por un optoacoplador de alta velocidad permitiría transmitir el PWM de 50 kHz sin distorsión apreciable. Una alternativa aún más limpia es utilizar un dispositivo integrado opto + gate driver como el HCPL-3120 o el FOD3120, que combinan aislamiento galvánico y capacidad de manejar la compuerta del MOSFET en un único encapsulado.
+
+\subsubsection{Mejoras en el control y la implementación digital}
+
+\paragraph{Soft-start.} Al conectar el convertidor por primera vez, el capacitor de salida está descargado y el lazo de control ve un cortocircuito virtual. Implementar una rampa de arranque del ciclo de trabajo (por ejemplo, incrementando $D$ linealmente desde 0 hasta 50 en un tiempo prolongado) evitaría picos de corriente en el inductor durante el arranque. Esta mejora se implementa enteramente en software como una etapa adicional antes de habilitar el lazo de control PI.
+
+\paragraph{Feedforward de tensión de entrada} El controlador actual reacciona a cambios de $V_{in}$ únicamente a través del error en la tensión de salida. Una mejora consiste en medir también $V_{in}$ con el ADC y calcular un término de adelanto $D_{ff}(V_{in}) = 1 - V_{in}/V_{ref}$ que se suma al ciclo de trabajo nominal. De esta forma, el PI solo corrige las diferencias residuales y la respuesta del sistema ante variaciones de la tensión de entrada se vuelve casi instantánea.
+
+\subsection{Estado del controlador digital y trabajo no integrado}
+
+El presente proyecto incluyó como parte del alcance el desarrollo del controlador PI en lenguaje ensamblador RISC-V (rv32i) para ser ejecutado en el procesador embebido en la FPGA, diseñado por el equipo del curso EL3313 Taller de Diseño Digital. Este componente integraría el lazo de control con el convertidor de potencia mediante los periféricos PWM, ADC/XADC, VGA y UART definidos en la especificación del proyecto.
+
+\subsubsection{Trabajo realizado sobre el controlador digital}
+
+El controlador PI fue diseñado, discretizado y verificado completamente para implementación en RISC-V. La ecuación de diferencias resultante,
+\[
+u[k] = u[k-1] + 0{,}000903\, e[k] - 0{,}000814\, e[k-1]
+\]
+fue traducida a aritmética entera en formato de punto fijo, con los coeficientes $b_0$ y $b_1$ escalados a Q16 ($b_{0,Q16} = 59$, $b_{1,Q16} = -53$). El acumulador del PI se mantiene en formato extendido para preservar resolución durante la operación, extrayéndose la parte entera únicamente al momento de actualizar el registro de duty del periférico PWM.
+
+Dado que el subconjunto de instrucciones del procesador no incluye la instrucción \texttt{mul}, se incorporó una rutina de multiplicación por desplazamientos y sumas (shift-and-add) de 32 iteraciones, capaz de calcular el producto de dos enteros con signo módulo $2^{32}$.
+
+El código incluye la lógica de saturación del ciclo de trabajo al rango $[45\, \%, 75\, \%]$. La saturación se aplica directamente sobre el acumulador del PI, lo que proporciona una forma simple y efectiva de anti-windup sin estado adicional.
+
+\subsubsection{Limitación para la integración final}
+
+La integración del controlador con el convertidor físico no fue posible dentro del cronograma del proyecto debido a que el desarrollo del procesador RISC-V y de sus periféricos asociados (PWM, ADC, VGA, UART) por el equipo del curso EL3313 no concluyó dentro del plazo disponible. Sin un procesador funcional sobre el cual ejecutar el código ensamblador, ni los periféricos para interactuar con el convertidor, la verificación experimental del lazo cerrado digital no pudo realizarse.
+
+Las pruebas en lazo cerrado documentadas en la sección VIII corresponden a las simulaciones del controlador PI sobre el modelo linealizado en MATLAB y sobre el circuito conmutado en PLECS, donde el controlador discreto fue implementado en el entorno de simulación con los mismos coeficientes destinados a la implementación en RISC-V. Estas simulaciones validan el diseño del controlador y confirman que la regulación funciona correctamente al integrarse con la dinámica del convertidor.
+
+La verificación física del convertidor (sección VI-A, Tablas VIII y IX) se realizó por tanto en lazo abierto, ajustando manualmente el ciclo de trabajo aplicado al MOSFET según la relación ideal del Boost. Los resultados muestran que el convertidor opera correctamente y se mantiene dentro de las especificaciones de regulación con ajuste manual. La inclusión del lazo cerrado digital únicamente reduciría las desviaciones residuales observadas (hasta 840 mV) hacia cero, como ya predicen las simulaciones.
+
+\subsubsection{Trabajo pendiente}
+
+Una vez disponible el procesador RISC-V con sus periféricos funcionales, la integración con el convertidor físico es directa, ya que tanto el código ensamblador como las interfaces de hardware (divisor de tensión, optoacopladores, gate driver) están dimensionadas y preparadas para esta integración. Las pruebas pendientes incluyen:
+
+\begin{itemize}
+    \item Verificación del seguimiento de la referencia de 24 V en lazo cerrado y comparación con los resultados de simulación.
+    \item Caracterización del transitorio ante cambios de carga y de tensión de entrada, comparando con las predicciones de PLECS.
+    \item Ajuste de los coeficientes del PI ($b_0$, $b_1$) si las pruebas experimentales revelan diferencias respecto al comportamiento simulado.
+\end{itemize}
+
 
 
 % -------------------------------------------------------
