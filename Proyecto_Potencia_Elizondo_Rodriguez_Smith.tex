@@ -1462,7 +1462,7 @@ En la Figura \ref{fig:plecs_nominal} se muestra la respuesta del sistema para la
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\columnwidth]{Validación PI en PLECS_nominal.png}
+    \includegraphics[width=1\columnwidth]{validacion_PI_PLECS_nominal.png}
     \caption{Validación en PLECS del sistema con PI discreto para $V_{in}=12~\mathrm{V}$ y $R=100~\Omega$.}
     \label{fig:plecs_nominal}
 \end{figure}
@@ -1481,17 +1481,17 @@ Este resultado confirma que el PI no mantiene un ciclo de trabajo fijo, sino que
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\columnwidth]{Validación PI en PLECS - Vin 8V.png}
+    \includegraphics[width=1\columnwidth]{validacion_PI_PLECS_vin8.png}
     \caption{Validación en PLECS del sistema con PI discreto para $V_{in}=8~\mathrm{V}$ y $R=100~\Omega$.}
     \label{fig:plecs_vin8}
 \end{figure}
 
-Finalmente, se realizó una prueba ante cambio de carga. Para esto, la carga equivalente se modificó de $100~\Omega$ a $50~\Omega$ en $t=50~\mathrm{ms}$. En la Figura \ref{fig:plecs_cambio_carga} se observa que la tensión de salida presenta una perturbación transitoria en el instante del cambio, debido al aumento de corriente demandada por la carga. Sin embargo, el controlador actúa sobre el ciclo de trabajo y la salida vuelve a estabilizarse alrededor de $24~\mathrm{V}$.
+Finalmente, se realizó una prueba ante cambio de carga. Para esto, se conecto una resistencia de $R=1k~\Omega$ en paralelo a la carga de $R=100~\Omega$ en $t=50~\mathrm{ms}$. En la Figura \ref{fig:plecs_cambio_carga} se observa que la tensión de salida presenta una perturbación transitoria en el instante del cambio, debido al aumento de corriente demandada por la carga. Sin embargo, el controlador actúa sobre el ciclo de trabajo y la salida vuelve a estabilizarse alrededor de $24~\mathrm{V}$.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\columnwidth]{Validación PI en PLECS - Cambio de carga.png}
-    \caption{Validación en PLECS del sistema con PI discreto ante un cambio de carga de $100~\Omega$ a $50~\Omega$ en $t=50~\mathrm{ms}$.}
+    \includegraphics[width=1\columnwidth]{validacion_PI_PLECS_cambio_carga.png}
+    \caption{Validación en PLECS del sistema con PI discreto ante un cambio de carga en $t=50~\mathrm{ms}$.}
     \label{fig:plecs_cambio_carga}
 \end{figure}
 
