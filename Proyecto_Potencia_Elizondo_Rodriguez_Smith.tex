@@ -178,7 +178,111 @@ que almacenan energía.
 
 \subsection{Controladores PI para convertidores DC-DC}
 
+En los convertidores DC-DC regulados, el controlador tiene como objetivo modificar la señal de control del interruptor para mantener una variable de salida en un valor deseado. En el caso del convertidor Boost, la variable controlada corresponde a la tensión de salida $V_o$, mientras que la referencia corresponde al valor deseado de operación, definido como $V_{ref}=24~\mathrm{V}$. A partir de estas señales se obtiene el error de control:
+
+\begin{equation}
+\begin{aligned}
+    e(t) &= V_{ref}(t) - V_o(t)
+\end{aligned}
+\label{eq:error_control_pi}
+\end{equation}
+
+El controlador PI combina una acción proporcional y una acción integral. La acción proporcional responde directamente al error instantáneo, mientras que la acción integral acumula el error en el tiempo. Esta última permite reducir o eliminar el error en estado estacionario ante referencias constantes o perturbaciones de baja frecuencia, como variaciones de carga o cambios en la tensión de entrada \cite{nise2015control}. La forma continua del controlador PI puede expresarse como:
+
+\begin{equation}
+\begin{aligned}
+    C(s) &= K_p + \frac{K_i}{s}
+\end{aligned}
+\label{eq:controlador_pi_continuo}
+\end{equation}
+
+o de forma equivalente:
+
+\begin{equation}
+\begin{aligned}
+    C(s) &= K_p \left(1 + \frac{1}{T_i s}\right)
+\end{aligned}
+\label{eq:controlador_pi_ti}
+\end{equation}
+
+donde $K_p$ es la ganancia proporcional, $K_i$ es la ganancia integral y $T_i$ es el tiempo integral, definido por:
+
+\begin{equation}
+\begin{aligned}
+    K_i &= \frac{K_p}{T_i}
+\end{aligned}
+\label{eq:ki_ti}
+\end{equation}
+
+Para un convertidor Boost controlado por PWM, la salida del controlador no actúa directamente sobre la tensión de salida, sino sobre el ciclo de trabajo aplicado al MOSFET. Por esta razón, el controlador genera una señal de control $u(t)$, la cual se utiliza para ajustar el ciclo de trabajo alrededor del punto de operación:
+
+\begin{equation}
+\begin{aligned}
+    D(t) &= D_0 + u(t)
+\end{aligned}
+\label{eq:duty_control_pi}
+\end{equation}
+
+donde $D_0$ corresponde al ciclo de trabajo nominal y $u(t)$ representa la corrección calculada por el controlador. En la práctica, el valor de $D(t)$ debe limitarse dentro de un intervalo permitido, ya que el ciclo de trabajo no puede tomar valores menores que cero ni mayores que uno. Además, para evitar condiciones no deseadas de operación, se suelen utilizar límites más restringidos, por ejemplo $D_{min}$ y $D_{max}$.
+
+En convertidores Boost operando en modo CCM, el diseño del controlador debe considerar que la planta presenta una dinámica de segundo orden y un cero en el semiplano derecho. Este cero limita el ancho de banda alcanzable del lazo de control, ya que intentar una respuesta demasiado rápida puede reducir el margen de fase y afectar la estabilidad del sistema \cite{erickson2001fundamentals}. Por esta razón, el diseño del PI no se realiza únicamente buscando error estacionario nulo, sino también considerando criterios de estabilidad como el margen de fase, el margen de ganancia y la frecuencia de cruce del lazo abierto.
+
 \subsection{Discretización de controladores y efectos del muestreo}
+
+Debido a que el controlador será implementado en un procesador RISC-V, la ley de control no se ejecuta de forma continua, sino en instantes discretos de tiempo. Esto significa que la tensión de salida se mide cada periodo de muestreo $T_s$, se calcula el error de control y luego se actualiza el ciclo de trabajo aplicado al PWM. Por tanto, el controlador continuo debe transformarse a una forma discreta antes de su implementación.
+
+El periodo de muestreo se define como:
+
+\begin{equation}
+\begin{aligned}
+    T_s &= \frac{1}{f_{control}}
+\end{aligned}
+\label{eq:periodo_muestreo}
+\end{equation}
+
+donde $f_{control}$ corresponde a la frecuencia de actualización del controlador digital. En un sistema digital, el valor de $T_s$ debe seleccionarse de forma que el controlador pueda capturar adecuadamente la dinámica del convertidor. Si el muestreo es demasiado lento, se agregan retardos importantes al lazo, se reduce el margen de fase y puede degradarse la estabilidad del sistema \cite{franklin1998digital}.
+
+Para discretizar el controlador PI puede utilizarse el método bilineal o método de Tustin. Este método aproxima la variable compleja $s$ mediante la relación:
+
+\begin{equation}
+\begin{aligned}
+    s &\approx \frac{2}{T_s}\frac{z-1}{z+1}
+\end{aligned}
+\label{eq:tustin}
+\end{equation}
+
+Aplicando esta aproximación al controlador PI de la ecuación \ref{eq:controlador_pi_continuo}, se obtiene:
+
+\begin{equation}
+\begin{aligned}
+    C(z) &= K_p + K_i\frac{T_s}{2}\frac{z+1}{z-1}
+\end{aligned}
+\label{eq:pi_discreto_tustin}
+\end{equation}
+
+Esta expresión puede reordenarse para obtener una ecuación de diferencias, adecuada para su implementación en software:
+
+\begin{equation}
+\begin{aligned}
+    u[k] &= u[k-1] + b_0 e[k] + b_1 e[k-1]
+\end{aligned}
+\label{eq:ecuacion_diferencias_pi}
+\end{equation}
+
+donde los coeficientes del controlador discreto están dados por:
+
+\begin{equation}
+\begin{aligned}
+    b_0 &= K_p + \frac{K_i T_s}{2} \\
+    b_1 &= -K_p + \frac{K_i T_s}{2}
+\end{aligned}
+\label{eq:coeficientes_pi_discreto}
+\end{equation}
+
+En esta forma, el procesador solo necesita almacenar el error actual $e[k]$, el error anterior $e[k-1]$ y la salida previa del controlador $u[k-1]$. A partir de estos valores se calcula la nueva salida de control, que posteriormente se suma al ciclo de trabajo nominal y se limita mediante saturación.
+
+Además del retardo asociado al muestreo, la implementación digital introduce otros efectos prácticos, como cuantización de la medición, resolución finita del PWM y posibles retardos computacionales. Estos efectos pueden provocar pequeñas diferencias entre la respuesta esperada por el modelo continuo y la respuesta obtenida en la implementación digital. 
+
 
 
 
@@ -677,7 +781,7 @@ El punto de operación utilizado corresponde a:
 con los valores de diseño:
 
 \begin{equation}
-    L=500~\mu\mathrm{H}, \quad
+    L=200~\mu\mathrm{H}, \quad
     C=47~\mu\mathrm{F}, \quad
     R_L=100~\Omega
 \end{equation}
@@ -703,17 +807,17 @@ y una corriente promedio en el inductor de:
 \end{equation}
 
 Además, el rizado pico a pico de la corriente del inductor fue de
-$0.48~\mathrm{A}$, por lo que la corriente mínima del inductor resulta:
+$0.60~\mathrm{A}$, por lo que la corriente mínima del inductor resulta:
 
 \begin{equation}
     i_{L,min}=I_L-\frac{\Delta i_L}{2}
     =
-    0.48-\frac{0.48}{2}
+    0.48-\frac{0.60}{2}
     =
-    0.24~\mathrm{A}
+    0.18~\mathrm{A}
 \end{equation}
 
-Como $i_{L,min}>0$, se confirma que el convertidor opera en modo de conducción continua para el punto de operación analizado. Esto es importante porque la función de transferencia utilizada para el diseño del controlador se basa en el modelo promedio del convertidor Boost en CCM. Adicionalmente, el rizado estimado de tensión de salida fue de $0.43~\%$, valor inferior al límite de $5~\%$ establecido en las especificaciones.
+Como $i_{L,min}>0$, se confirma que el convertidor opera en modo de conducción continua para el punto de operación analizado. Esto es importante porque la función de transferencia utilizada para el diseño del controlador se basa en el modelo promedio del convertidor Boost en CCM. Adicionalmente, el rizado estimado de tensión de salida fue de $0.21~\%$, valor inferior al límite de $5~\%$ establecido en las especificaciones.
 
 Para la linealización se consideran pequeñas perturbaciones alrededor del punto de operación:
 
@@ -754,7 +858,7 @@ Para los valores de diseño utilizados, las matrices obtenidas fueron:
 \begin{equation}
 A =
 \begin{bmatrix}
-0 & -1000 \\
+0 & -2500 \\
 10638 & -212.8
 \end{bmatrix}
 \end{equation}
@@ -762,7 +866,7 @@ A =
 \begin{equation}
 B =
 \begin{bmatrix}
-48000 \\
+120000 \\
 -10213
 \end{bmatrix}
 \end{equation}
@@ -791,23 +895,22 @@ La función de transferencia obtenida fue:
 
 \begin{equation}
     G_{vd}(s)=
-    \frac{-1.021\times10^4s+5.106\times10^8}
-    {s^2+212.8s+1.064\times10^7}
+    \frac{-1.021\times10^4s+1.277\times10^9}
+    {s^2+212.8s+2.66\times10^7}
     \label{eq:gvd_obtenida}
 \end{equation}
 
 Esta función representa la planta que será controlada mediante el PI. El signo negativo en el término asociado a $s$ en el numerador indica la presencia de un cero en el semiplano derecho, característica propia de los convertidores Boost. Este cero es importante porque limita el ancho de banda alcanzable por el controlador.
 
-
 La Figura \ref{fig:analisis_planta_gvd} muestra el análisis de la planta $G_{vd}(s)$ obtenido en MATLAB. En la parte superior se presenta el diagrama de Bode, donde se observa una resonancia asociada a la frecuencia natural del modelo, lo cual es coherente con el factor de calidad elevado obtenido para la planta.
 
-En la parte inferior de la figura se muestra la respuesta de la planta en lazo  abierto ante una pequeña perturbación en el ciclo de trabajo, correspondiente a  $\Delta d=0.01$. Esta perturbación no representa un cambio absoluto del ciclo de  trabajo, sino una variación alrededor del punto nominal $D=0.5$. Debido a que la  ganancia de continua de la planta es $K=48$, el cambio esperado en estado  estacionario es:
+En la parte inferior de la figura se muestra la respuesta de la planta en lazo abierto ante una pequeña perturbación en el ciclo de trabajo, correspondiente a $\Delta d=0.01$. Esta perturbación no representa un cambio absoluto del ciclo de trabajo, sino una variación alrededor del punto nominal $D=0.5$. Debido a que la ganancia de continua de la planta es $K=48$, el cambio esperado en estado estacionario es:
 
 \begin{equation}
     \Delta V_o = K\Delta d = 48(0.01)=0.48~\mathrm{V}
 \end{equation}
 
-Como se observa en la respuesta temporal, la tensión de salida converge aproximadamente a este valor, lo cual confirma la consistencia del del resultado esperado para el modelo de pequeña señal. Sin embargo, la respuesta presenta oscilaciones antes de alcanzar el estado estacionario, lo que indica un comportamiento subamortiguado de la  planta en lazo abierto.
+Como se observa en la respuesta temporal, la tensión de salida converge aproximadamente a este valor, lo cual confirma la consistencia del resultado esperado para el modelo de pequeña señal. Sin embargo, la respuesta presenta oscilaciones antes de alcanzar el estado estacionario, lo que indica un comportamiento subamortiguado de la planta en lazo abierto.
 
 \begin{figure}[H]
     \centering
@@ -816,31 +919,30 @@ Como se observa en la respuesta temporal, la tensión de salida converge aproxim
     \label{fig:analisis_planta_gvd}
 \end{figure}
 
-A partir de esta figura se confirma que el modelo linealizado permite analizar  el comportamiento local del convertidor alrededor del punto de operación. La  respuesta obtenida no incluye el rizado de conmutación ni efectos no ideales del circuito, ya que corresponde al modelo promedio de pequeña señal. El objetivo del PI será regular la tensión de salida y mejorar el comportamiento dinámico del sistema en lazo cerrado.
-
+A partir de esta figura se confirma que el modelo linealizado permite analizar el comportamiento local del convertidor alrededor del punto de operación. La respuesta obtenida no incluye el rizado de conmutación ni efectos no ideales del circuito, ya que corresponde al modelo promedio de pequeña señal. El objetivo del PI será regular la tensión de salida y mejorar el comportamiento dinámico del sistema en lazo cerrado.
 
 Del análisis de la planta se obtuvo una frecuencia natural de:
 
 \begin{equation}
-    f_0 = 519.11~\mathrm{Hz}
+    f_0 = 820.78~\mathrm{Hz}
 \end{equation}
 
 un factor de calidad de:
 
 \begin{equation}
-    Q = 15.3297
+    Q = 24.2384
 \end{equation}
 
 y un cero en el semiplano derecho ubicado en:
 
 \begin{equation}
-    f_z = 7957.75~\mathrm{Hz}
+    f_z = 19894.37~\mathrm{Hz}
 \end{equation}
 
 equivalente a:
 
 \begin{equation}
-    \omega_z = 50000~\mathrm{rad/s}
+    \omega_z = 125000~\mathrm{rad/s}
 \end{equation}
 
 La presencia de este cero implica que no es conveniente diseñar el controlador con una frecuencia de cruce cercana a $f_z$, ya que esto puede reducir el margen de fase y comprometer la estabilidad del sistema. Por esta razón, el diseño del controlador debe realizarse con un ancho de banda considerablemente menor que la frecuencia del cero en el semiplano derecho.
@@ -1040,13 +1142,13 @@ Los criterios utilizados para seleccionar el controlador fueron los siguientes:
 La frecuencia del cero en el semiplano derecho obtenida para la planta fue:
 
 \begin{equation}
-    f_z=7957.75~\mathrm{Hz}
+    f_z=19894.37~\mathrm{Hz}
 \end{equation}
 
 Por esta razón, el barrido de diseño se limitó hasta aproximadamente:
 
 \begin{equation}
-    \frac{f_z}{8}=994.7~\mathrm{Hz}
+    \frac{f_z}{8}=2486.8~\mathrm{Hz}
 \end{equation}
 
 De esta forma se evita diseñar un controlador con un ancho de banda cercano al cero en el semiplano derecho, ya que esto podría reducir el margen de fase y afectar la estabilidad del sistema.
@@ -1054,47 +1156,47 @@ De esta forma se evita diseñar un controlador con un ancho de banda cercano al 
 A partir del barrido realizado en MATLAB, se seleccionó una frecuencia de cruce de:
 
 \begin{equation}
-    f_c=529.38~\mathrm{Hz}
+    f_c=822.07~\mathrm{Hz}
 \end{equation}
 
 con un margen de fase de:
 
 \begin{equation}
-    PM=49.48^\circ
+    PM=77.65^\circ
 \end{equation}
 
 Este valor supera el margen mínimo de $45^\circ$, por lo que se considera
 aceptable para el diseño del controlador. Además, el margen de ganancia obtenido fue:
 
 \begin{equation}
-    GM=16.03~\mathrm{dB}
+    GM=18.80~\mathrm{dB}
 \end{equation}
 
 Los parámetros del controlador PI obtenidos fueron:
 
 \begin{equation}
-    K_p=0.001605
+    K_p=0.000858
 \end{equation}
 
 \begin{equation}
-    T_i=0.003006~\mathrm{s}
+    T_i=0.001936~\mathrm{s}
 \end{equation}
 
 \begin{equation}
-    K_i=0.533967
+    K_i=0.443360
 \end{equation}
 
 Con estos valores, el cero del controlador PI queda ubicado en:
 
 \begin{equation}
-    f_{z,PI}=\frac{1}{2\pi T_i}=52.94~\mathrm{Hz}
+    f_{z,PI}=\frac{1}{2\pi T_i}=82.2072~\mathrm{Hz}
 \end{equation}
 
 Por tanto, el controlador continuo obtenido es:
 
 \begin{equation}
     C_{PI}(s)=
-    \frac{4.826\times10^{-6}s+0.001605}{0.003006s}
+    \frac{1.662\times10^{-6}s+0.0008584}{0.001936s}
 \end{equation}
 
 Una vez diseñado el controlador continuo, se realizó la discretización para su implementación digital. El periodo de muestreo seleccionado fue:
@@ -1115,7 +1217,7 @@ El controlador discreto obtenido fue:
 
 \begin{equation}
     C_{PI}(z)=
-    \frac{0.001659z-0.001552}{z-1}
+    \frac{0.0009027z-0.000814}{z-1}
 \end{equation}
 
 A partir de esta función de transferencia discreta se obtiene la ecuación de
@@ -1128,27 +1230,27 @@ diferencias:
 donde:
 
 \begin{equation}
-    b_0=0.001659
+    b_0=0.000903
 \end{equation}
 
 \begin{equation}
-    b_1=-0.001552
+    b_1=-0.000814
 \end{equation}
 
 Por tanto, la ecuación discreta final queda:
 
 \begin{equation}
-    u[k]=u[k-1]+0.001659e[k]-0.001552e[k-1]
+    u[k]=u[k-1]+0.000903e[k]-0.000814e[k-1]
 \end{equation}
 
 Esta forma es conveniente para la implementación en RISC-V, ya que únicamente requiere almacenar el error actual, el error anterior y la salida anterior del controlador. Además, el script de MATLAB generó los coeficientes escalados en formato de punto fijo Q16, obteniéndose:
 
 \begin{equation}
-    b_{0,Q16}=109
+    b_{0,Q16}=59
 \end{equation}
 
 \begin{equation}
-    b_{1,Q16}=-102
+    b_{1,Q16}=-53
 \end{equation}
 
 Estos valores pueden ser utilizados como referencia si la implementación digital se realiza con aritmética de punto fijo.
@@ -1162,7 +1264,7 @@ Finalmente, debido a que el controlador modifica el ciclo de trabajo del PWM, se
 Con esta saturación se evita que el PI genere ciclos de trabajo negativos,
 mayores al 100\%, o demasiado cercanos a la unidad. Además, esta limitación ayuda a reducir problemas asociados a la acumulación excesiva de la acción integral cuando el controlador alcanza sus límites de operación.
 
-Por lo tanto, este controlador diseñado regula la tensión de salida del Boost tomando como entrada el error entre la referencia de $24~\mathrm{V}$ y la tensión medida. La acción de control se calcula mediante un PI discreto y se aplica como una corrección sobre el ciclo de trabajo nominal del convertidor. Los márgenes de estabilidad obtenidos indican que el diseño es adecuado. 
+Por lo tanto, este controlador diseñado regula la tensión de salida del Boost tomando como entrada el error entre la referencia de $24~\mathrm{V}$ y la tensión medida. La acción de control se calcula mediante un PI discreto y se aplica como una corrección sobre el ciclo de trabajo nominal del convertidor. Los márgenes de estabilidad obtenidos indican que el diseño es adecuado.
 
 
 
@@ -1173,10 +1275,9 @@ Por lo tanto, este controlador diseñado regula la tensión de salida del Boost 
 
 \subsection{Validación mediante el modelo linealizado en MATLAB}
 
-Una vez diseñado el controlador PI, se realizó una primera validación del sistema en lazo cerrado mediante el modelo linealizado en MATLAB. Esta validación permite analizar el comportamiento esperado del convertidor antes de implementar el
-controlador. En esta etapa, la planta utilizada corresponde a la función de transferencia $G_{vd}(s)$ obtenida a partir del modelo promedio linealizado, mientras que el controlador corresponde al PI diseñado y discretizado previamente.
+Una vez diseñado el controlador PI, se realizó una primera validación del sistema en lazo cerrado mediante el modelo linealizado en MATLAB. Esta validación permite analizar el comportamiento esperado del convertidor antes de implementar el controlador. En esta etapa, la planta utilizada corresponde a la función de transferencia $G_{vd}(s)$ obtenida a partir del modelo promedio linealizado, mientras que el controlador corresponde al PI diseñado y discretizado previamente.
 
-En la Figura \ref{fig:lazo_abierto_cerrado} se muestra el análisis del lazo abierto $C(s)G_{vd}(s)$ y la respuesta del sistema en lazo cerrado ante una referencia de $24~\mathrm{V}$. El diagrama de Bode permite verificar que el sistema presenta un margen de ganancia de $16~\mathrm{dB}$ y un margen de fase de $49.5^\circ$, valor superior al criterio mínimo de $45^\circ$ definido para el diseño. La frecuencia de cruce obtenida fue aproximadamente $3.33\times10^3~\mathrm{rad/s}$, equivalente a $530~\mathrm{Hz}$.
+En la Figura \ref{fig:lazo_abierto_cerrado} se muestra el análisis del lazo abierto $C(s)G_{vd}(s)$ y la respuesta del sistema en lazo cerrado ante una referencia de $24~\mathrm{V}$. El diagrama de Bode permite verificar que el sistema presenta un margen de ganancia de $18.8~\mathrm{dB}$ y un margen de fase de $77.7^\circ$, valor superior al criterio mínimo de $45^\circ$ definido para el diseño. La frecuencia de cruce obtenida fue aproximadamente $5.17\times10^3~\mathrm{rad/s}$, equivalente a $822~\mathrm{Hz}$.
 
 \begin{figure}[H]
     \centering
@@ -1185,20 +1286,17 @@ En la Figura \ref{fig:lazo_abierto_cerrado} se muestra el análisis del lazo abi
     \label{fig:lazo_abierto_cerrado}
 \end{figure}
 
-La respuesta temporal de la misma figura muestra que la tensión de salida converge hacia la referencia de $24~\mathrm{V}$ sin presentar sobreimpulso apreciable. A partir del análisis realizado en MATLAB se obtuvo un tiempo de asentamiento de $0.1612~\mathrm{s}$ y un sobreimpulso de $0~\%$. Estos resultados indican que el controlador proporciona una respuesta estable y suficientemente amortiguada para el modelo linealizado.
+La respuesta temporal de la misma figura muestra que la tensión de salida converge hacia la referencia de $24~\mathrm{V}$ sin presentar sobreimpulso apreciable. A partir del análisis realizado en MATLAB se obtuvo un tiempo de asentamiento de $0.1894~\mathrm{s}$, un tiempo de subida de $0.1070~\mathrm{s}$ y un sobreimpulso de $0.00~\%$. Estos resultados indican que el controlador proporciona una respuesta estable y suficientemente amortiguada para el modelo linealizado. 
 
-Posteriormente, se evaluó el comportamiento del controlador en su forma discreta.
-
-Para esto se utilizó el periodo de muestreo definido para el lazo de control:
+Posteriormente, se evaluó el comportamiento del controlador en su forma discreta. Para esto se utilizó el periodo de muestreo definido para el lazo de control:
 
 \begin{equation}
     T_s = 200~\mu\mathrm{s}
 \end{equation}
 
 lo que corresponde a una frecuencia de control de $5~\mathrm{kHz}$.
-    
-En la Figura \ref{fig:simulacion_discreta_lazo_cerrado} se muestran tres pruebas realizadas con el PI discreto: respuesta ante referencia de $24~\mathrm{V}$, seguimiento de un cambio de referencia y respuesta ante una perturbación equivalente a un cambio
-de carga.
+
+En la Figura \ref{fig:simulacion_discreta_lazo_cerrado} se muestran tres pruebas realizadas con el PI discreto: respuesta ante referencia de $24~\mathrm{V}$, seguimiento de un cambio de referencia y respuesta ante una perturbación equivalente a un cambio de carga.
 
 \begin{figure}[H]
     \centering
@@ -1207,16 +1305,63 @@ de carga.
     \label{fig:simulacion_discreta_lazo_cerrado}
 \end{figure}
 
-En la primera prueba se observa que la salida aumenta progresivamente hasta alcanzar la referencia de $24~\mathrm{V}$. Además, la tensión entra dentro de la banda permitida de $\pm 5~\%$, correspondiente al intervalo entre $22.8~\mathrm{V}$ y $25.2~\mathrm{V}$. Esto confirma que el PI discreto permite
-regular la salida dentro del margen especificado para el modelo analizado.
+En la primera prueba se observa que la salida aumenta progresivamente hasta alcanzar la referencia de $24~\mathrm{V}$. Además, la tensión entra dentro de la banda permitida de $\pm 5~\%$, correspondiente al intervalo entre $22.8~\mathrm{V}$ y $25.2~\mathrm{V}$. Esto confirma que el PI discreto permite regular la salida dentro del margen especificado para el modelo analizado.
 
-En la segunda prueba se aplicó un cambio de referencia de $20~\mathrm{V}$ a $24~\mathrm{V}$ en $t=10~\mathrm{ms}$. La respuesta muestra que el sistema sigue el nuevo valor de referencia de forma estable y sin sobreimpulso significativo. Esto evidencia que el controlador puede ajustar el ciclo de trabajo para llevar
-la salida hacia una nueva condición de operación.
+En la segunda prueba se aplicó un cambio de referencia de $20~\mathrm{V}$ a $24~\mathrm{V}$ en $t=10~\mathrm{ms}$. La respuesta muestra que el sistema sigue el nuevo valor de referencia de forma estable y sin sobreimpulso significativo. Aunque la respuesta no es instantánea, la salida converge progresivamente hacia la nueva referencia, lo cual evidencia que el controlador puede ajustar el ciclo de trabajo para llevar la salida hacia una nueva condición de operación.
 
-Finalmente, se evaluó una perturbación equivalente a un cambio de carga de $100~\Omega$ a $50~\Omega$. Este cambio representa un aumento de corriente de carga de aproximadamente $0.24~\mathrm{A}$. Como se observa en la respuesta, la tensión de salida presenta una caída inicial debido al aumento de demanda de corriente, pero posteriormente el controlador actúa sobre el ciclo de trabajo y
-recupera la salida hacia la referencia de $24~\mathrm{V}$. 
+Finalmente, se evaluó una perturbación equivalente a un cambio de carga de $100~\Omega$ a $50~\Omega$. Este cambio representa un aumento de corriente de carga de aproximadamente $0.24~\mathrm{A}$. Como se observa en la respuesta, la tensión de salida presenta una caída inicial debido al aumento de demanda de corriente, pero posteriormente el controlador actúa sobre el ciclo de trabajo y recupera la salida hacia la referencia de $24~\mathrm{V}$. La salida vuelve a entrar dentro de la banda de $\pm 5~\%$, por lo que el controlador logra rechazar la perturbación en el modelo linealizado.
 
 Es importante señalar que esta prueba de cambio de carga corresponde a una aproximación realizada sobre el modelo linealizado, por lo que no incluye el rizado de conmutación ni los efectos no ideales del convertidor físico.
+
+
+\subsection{Validación en PLECS del sistema completo}
+
+Después de validar el controlador mediante el modelo linealizado en MATLAB, se realizó una simulación del sistema completo en PLECS. En este caso se utilizó el convertidor Boost conmutado, junto con el controlador PI discreto, el generador PWM y la retroalimentación de la tensión de salida. Además, el MOSFET y el diodo fueron representados mediante modelos electro-térmicos en PLECS, por lo que la simulación considera de forma más completa las pérdidas asociadas a los semiconductores.
+
+A diferencia del modelo linealizado, esta simulación implementa directamente el circuito del convertidor con su etapa de conmutación. Por esta razón, el MOSFET conmuta mediante la señal PWM generada por el controlador, permitiendo observar el rizado de conmutación y la respuesta del lazo cerrado actuando directamente sobre el ciclo de trabajo. Se analizan principalmente las variables eléctricas del sistema, como la tensión de salida, el error de control y el ciclo de trabajo aplicado.
+
+
+En la Figura \ref{fig:plecs_nominal} se muestra la respuesta del sistema para la condición nominal de operación, con $V_{in}=12~\mathrm{V}$ y una carga de $100~\Omega$. Se observa que la tensión de salida se mantiene alrededor de la referencia de $24~\mathrm{V}$ y dentro de la banda permitida de $\pm 5~\%$. Además, el error de control tiende a cero después del transitorio inicial, mientras que el ciclo de trabajo permanece cercano a $D=0.5$, valor esperado para elevar $12~\mathrm{V}$ a $24~\mathrm{V}$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\columnwidth]{Validación PI en PLECS_nominal.png}
+    \caption{Validación en PLECS del sistema con PI discreto para $V_{in}=12~\mathrm{V}$ y $R=100~\Omega$.}
+    \label{fig:plecs_nominal}
+\end{figure}
+
+Posteriormente, se evaluó el comportamiento del sistema con una tensión de entrada de $8~\mathrm{V}$, manteniendo la misma referencia de $24~\mathrm{V}$ y la carga de $100~\Omega$. Como se observa en la Figura \ref{fig:plecs_vin8}, la tensión de salida presenta una caída inicial, pero el controlador incrementa progresivamente el ciclo de trabajo hasta recuperar la salida alrededor de la referencia. El valor final del ciclo de trabajo se aproxima a $D=0.667$, lo cual coincide con la relación ideal del convertidor Boost:
+
+\begin{equation}
+    D = 1-\frac{V_{in}}{V_o}
+    =
+    1-\frac{8}{24}
+    =
+    0.667
+\end{equation}
+
+Este resultado confirma que el PI no mantiene un ciclo de trabajo fijo, sino que ajusta la señal PWM para compensar la disminución de la tensión de entrada.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\columnwidth]{Validación PI en PLECS - Vin 8V.png}
+    \caption{Validación en PLECS del sistema con PI discreto para $V_{in}=8~\mathrm{V}$ y $R=100~\Omega$.}
+    \label{fig:plecs_vin8}
+\end{figure}
+
+Finalmente, se realizó una prueba ante cambio de carga. Para esto, la carga equivalente se modificó de $100~\Omega$ a $50~\Omega$ en $t=50~\mathrm{ms}$. En la Figura \ref{fig:plecs_cambio_carga} se observa que la tensión de salida presenta una perturbación transitoria en el instante del cambio, debido al aumento de corriente demandada por la carga. Sin embargo, el controlador actúa sobre el ciclo de trabajo y la salida vuelve a estabilizarse alrededor de $24~\mathrm{V}$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\columnwidth]{Validación PI en PLECS - Cambio de carga.png}
+    \caption{Validación en PLECS del sistema con PI discreto ante un cambio de carga de $100~\Omega$ a $50~\Omega$ en $t=50~\mathrm{ms}$.}
+    \label{fig:plecs_cambio_carga}
+\end{figure}
+
+En esta prueba, el ciclo de trabajo presenta una variación pequeña alrededor de $D=0.5$. Esto es coherente con el comportamiento ideal del convertidor Boost, ya que para una misma tensión de entrada y una misma tensión de salida, el ciclo de trabajo en estado estacionario depende principalmente de la relación $V_{in}/V_o$. Por tanto, el cambio de carga genera principalmente una perturbación transitoria, pero no modifica de forma significativa el valor final del ciclo de trabajo.
+
+A partir de las tres pruebas realizadas, se verifica que el controlador PI discreto permite regular la tensión de salida del convertidor alrededor de $24~\mathrm{V}$, tanto en la condición nominal como ante una reducción de la tensión de entrada y ante un cambio de carga. Además, las respuestas obtenidas permanecen dentro de la banda de tolerancia de $\pm 5~\%$, por lo que el sistema cumple con el criterio de regulación establecido.
+
 
 
 \section{Análisis de resultados}
