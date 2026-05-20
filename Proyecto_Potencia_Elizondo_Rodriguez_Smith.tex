@@ -741,8 +741,29 @@ llegue a presentar altas temperaturas de operación. Según la simulación reali
     \label{tab:semiconductors_losses}
 \end{table}
 
-En base a lo anterior, y tomando como referencia los valores presentes en la simulación. La eficiencia
-del convertidor es aproximadamente:
+Con estos valores de pérdidas, la resistencia térmica máxima que se podría permitir en el disipador
+del MOSFET sería de:
+
+
+\begin{equation}
+\begin{aligned}
+    R_{\theta SA} &\leq \frac{T_{J,max} - T_a}{P_{total}} - R_{\theta JC} - R_{\theta CS} \\
+    R_{\theta SA} &\leq 639.42~^\circ\mathrm{C/W} \\
+\end{aligned}
+\end{equation}
+
+Y para el caso del diodo, sería:
+
+
+\begin{equation}
+\begin{aligned}
+    R_{\theta SA} &\leq 285.06~^\circ\mathrm{C/W} \\
+\end{aligned}
+\end{equation}
+
+En ambos casos con una temperatura de juntura que no exceda los 100 $^\circ$C y una temperatura ambiente de 25 $^\circ$C. Se 
+observa que los valores son bastante altos, lo que indica que no es necesario colocar un disipador, situación que se confirmó al momento
+de hacer la implementación física del circuito. Por otro lado, la eficiencia del convertidor en base a lo mencionado, sería: 
 
 \begin{equation}
     \eta = \frac{P_{out}}{P_{in}} = \frac{5.756 - 0.379}{5.756} \cdot 100 = 93.4\%
@@ -1598,7 +1619,7 @@ El modelo promedio linealizado utilizado para el diseño del controlador asume u
 
 \subsubsection{Limitaciones del convertidor físico}
 
-La implementación física presenta una desviación en estado estacionario de hasta 840 mV respecto al valor normal de 24 V. Esta desviación se mantiene dentro de la especificación de $\pm 5$ \%, pero crece a menor tensión de entrada. Esto es consistente con la mayor fracción del periodo en la que el MOSFET conduce, durante la cual la caída por la resistencia $R_{DS(on)}$ y por las resistencias parásitas del inductor reduce la tensión efectiva de salida.
+La implementación física presenta una desviación en estado estacionario de hasta 840 mV respecto al valor nominal de 24 V. Esta desviación se mantiene dentro de la especificación de $\pm 5$ \%, pero crece a menor tensión de entrada. Esto es consistente con la mayor fracción del periodo en la que el MOSFET conduce, durante la cual la caída por la resistencia $R_{DS(on)}$ y por las resistencias parásitas del inductor reduce la tensión efectiva de salida.
 
 Además, la frecuencia de conmutación de 50 kHz requiere de un manejo cuidadoso de la señal PWM entre la FPGA y el MOSFET. Los optoacopladores 4N35 utilizados para el aislamiento galvánico tienen un tiempo de conmutación nominal de 10\,$\mu$s (tabla \ref{tab:4N35}), lo que en condiciones estándar limitaría la frecuencia útil a alrededor de 10 kHz. La resistencia de descarga entre base y emisor del fototransistor permitió empujar este límite hasta los 50 kHz requeridos, pero esta operación se realiza fuera del rango recomendado por la hoja de datos, lo que introduce una distorsión en el ciclo de trabajo aplicado al MOSFET.
 
@@ -1661,7 +1682,7 @@ fue traducida a aritmética entera en formato de punto fijo, con los coeficiente
 
 Dado que el subconjunto de instrucciones del procesador no incluye la instrucción \texttt{mul}, se incorporó una rutina de multiplicación por desplazamientos y sumas (shift-and-add) de 32 iteraciones, capaz de calcular el producto de dos enteros con signo módulo $2^{32}$.
 
-El código incluye la lógica de saturación del ciclo de trabajo al rango $[45\, \%, 75\, \%]$. La saturación se aplica directamente sobre el acumulador del PI, lo que proporciona una forma simple y efectiva de anti-windup sin estado adicional.
+El código incluye la lógica de saturación del ciclo de trabajo al rango $[45\%, 75\%]$. La saturación se aplica directamente sobre el acumulador del PI, lo que proporciona una forma simple y efectiva de anti-windup sin estado adicional.
 
 \subsubsection{Limitación para la integración final}
 
