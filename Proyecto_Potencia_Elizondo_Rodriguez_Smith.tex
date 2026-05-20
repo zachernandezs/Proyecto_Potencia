@@ -51,28 +51,23 @@ zachernandezs@estudiantec.cr}
 
 \section{Introducción}
 
-El presente informe documenta el diseño, modelado, simulación e implementación 
-de un convertidor DC-DC tipo \textit{Boost} con control digital en lazo cerrado. 
-Este tipo de convertidor es ampliamente utilizado en aplicaciones donde se requiere 
-elevar una tensión de entrada a un nivel superior regulado, como sistemas fotovoltaicos, 
-fuentes con batería y etapas de acondicionamiento de energía.
+El presente informe documenta el diseño, modelado, simulación e
+implementación de un convertidor DC-DC tipo \textit{Boost} con control
+digital en lazo cerrado. Este tipo de convertidor es ampliamente
+utilizado en aplicaciones donde se requiere elevar una tensión de
+entrada a un nivel superior regulado, como sistemas fotovoltaicos,
+fuentes con batería y etapas de acondicionamiento de energía, donde
+pequeñas variaciones de carga o de la fuente pueden producir cambios
+importantes en la tensión de salida.
 
-El diseño del convertidor abarca la selección y dimensionamiento de los componentes 
-pasivos y activos, el análisis de pérdidas por conducción y conmutación, y la 
-justificación de la operación en modo de conducción continua (CCM). Sobre esta base, 
-se desarrolla un modelo promedio del sistema, a partir del cual se obtiene la función 
-de transferencia que describe la dinámica del convertidor alrededor de su punto de 
-operación nominal.
-
-Para la regulación de la tensión de salida se diseña un controlador PI en tiempo 
-discreto, cuya implementación se realiza sobre un procesador RISC-V ejecutándose 
-en una FPGA. Este enfoque replica la arquitectura utilizada en controladores modernos 
-de potencia programables, donde el procesador ejecuta periódicamente la ley de 
-control.
-
-Finalmente, el sistema es validado mediante simulación y pruebas experimentales, 
-comparando los resultados obtenidos con las predicciones del modelo analítico e 
-identificando las discrepancias asociadas a efectos no ideales.
+El diseño abarca la selección y dimensionamiento de componentes pasivos
+y activos, el análisis de pérdidas por conducción y conmutación, y la
+justificación de la operación en modo de conducción continua (CCM).
+Sobre esta base se desarrolla un modelo promedio linealizado, del cual
+se obtiene la función de transferencia $G_{vd}(s)$ que describe la
+dinámica del convertidor alrededor del punto de operación nominal, y a
+partir de la cual se diseña un controlador PI discreto para la
+regulación de la tensión de salida.
 
 \section{Fundamentos teóricos}
 
@@ -591,7 +586,6 @@ de compuerta, es de esperar que presente menores pérdidas por conmutación, lo 
 a las pérdidas por conducción, ambos dispositivos tienen resistencias de encendido bastante bajas, que según la aplicación podrían hacerse despreciables
 estas pérdidas, ante una corriente circulando por el semiconductor. 
 
-\setlength{\parskip}{1em}
 
 En cuanto al diodo, este también debe de cumplir con ciertos requerimientos mínimos bloqueando
 en inversa la misma tensión $V_{o}$ y soportar la máxima corriente que circula por el inductor. 
@@ -771,25 +765,11 @@ de hacer la implementación física del circuito. Por otro lado, la eficiencia d
 
 \subsection{Consideraciones Adicionales}
 
-Para realizar una conexión exitosa con la tarjeta FPGA, se debe considerar aislar ambos circuitos uno del otro y considerar las tensiones y corrientes de trabajo de la tarjeta. 
-
-El aislamiento galvánico entre ambos circuitos se realizó por medio de dos optoacopladores 4N35, fabricados por Vishay. Este optoacoplador separa la etapa de la FPGA de la etapa de potencia, protegiendo los sistemas digitales delicados de la tarjeta. El dispositivo funciona transmitiendo la información que recibe de un lado al otro por medio de un LED infrarrojo de galio arsénico y un fototransistor NPN. 
-
-El optoacoplador tiene un tiempo de conmutación de $10\mu s$.  Una estimación conservadora propone una máxima frecuencia de conmutación de 10 kHz. Para mejorar esta frecuencia al valor requerido (50 kHz), se puede utilizar una resistencia de descarga entre la base y el emisor del transistor BJT, con el objetivo de descargar rápidamente la carga almacenada en la capacitancia parásita de la juntura ($C_j$) y mejorar el tiempo de apagado del transistor. Esta resistencia se estimó limitando la corriente de base efectiva para evitar saturación del fototransistor. Empíricamente, se encontró que un valor entre 50 y 100 kHz funciona para mejorar el tiempo de caida de la señal, haciendo posible la transmisión de datos a una frecuencia de 50 kHz.
-
-Antes de alimentar la señal aislada al MOSFET, primero se utilizó un IR2110 Gate Driver. Este driver se encarga de elevar la tensión y corriente proporcionada por la señal PWM (3.3 V) a una capaz de conmutar el MOSFET IRF1010EZ que se utiliza en el convertidor. Por esto, se emplea el driver como etapa intermedia entre el dispositivo de aislamiento y el dispositivo de conmutación.
-
-Por último, se utiliza un factor de escalamiento $k$ para reacomodar el rango de salida del convertidor a uno que pueda discretizar el periférico XADC de la tarjeta FPGA. Este factor $k$ se calculó tomando en cuenta el rango de salida del convertidor (24 V $\pm$ 5 \%) y el rango de entrada del XADC (0 a 1 V).
-
-Se toma como valor superior de salida del convertidor 30 V, para manejar un margen de seguridad en caso de transitorios o picos de tensión, y se utilizó la siguiente fórmula para encontrar el factor $k$ del divisor:
-
-\begin{equation}
-	V_{ADC} = kV_o, \quad k = \frac{R_2}{R_1+R_2}, \quad k = \frac{1}{30}
-\end{equation}
-
-
-Asumiendo $R_2$ igual a 10 k$\Omega$, se puede determinar que $R_1$ debe tener un valor de 290 k$\Omega$. Ajustando a un valor disponible comercialmente, se tiene $R_1$ igual a 300 k$\Omega$. Este divisor de tensión sería seguido por una etapa de acople de impedancias (seguidor de tensión) para reducir la impedancia de la fuente. Seguidamente, se conectaría la entrada del XADC.
-
+Para la interfaz con la tarjeta FPGA se previó aislamiento 
+galvánico mediante optoacopladores 4N35 con resistencia de descarga, 
+un gate driver IR2110 para el manejo de compuerta del MOSFET, y un 
+divisor resistivo ($R_1 = 300~\mathrm{k\Omega}$, $R_2 = 10~\mathrm{k\Omega}$) 
+para escalar la tensión de salida al rango de entrada del XADC (0--1~V).
 
 \section{Modelado y análisis}
 
@@ -999,7 +979,7 @@ Como parte del análisis del diseño presentado, se tienen los siguientes proces
 validación del funcionamiento del convertidor. 
 
 \subsection{Funcionamiento de la implementación física}
-Mediante pruebas de laboratio se verificó el correcto funcionamiento del convertidor, los componentes resistivos 
+Mediante pruebas de laboratorio se verificó el correcto funcionamiento del convertidor, los componentes resistivos 
 y capacitivos tienen los siguientes valores experimentales. 
 
 \begin{table}[H]
@@ -1609,7 +1589,38 @@ Es importante destacar que la implementación física se evaluó en lazo abierto
 
 La eficiencia estimada por simulación es del 93,4\,\%, valor coherente con un convertidor Boost de baja potencia operando con MOSFET y diodo de buena calidad. La distribución de pérdidas (Tabla V) muestra que el diodo es el componente que más disipa (262 mW), debido a las pérdidas de conducción. El MOSFET disipa menos (117 mW), repartidos de forma más equilibrada entre conducción y conmutación. Esta distribución sugiere que el camino más directo para mejorar la eficiencia sería seleccionar un diodo con menor $V_F$, por ejemplo, un diodo Schottky de bajo umbral.
 
-%\subsection{Propuestas de mejora}
+\subsection{Propuestas de mejora}
+
+A partir de las limitaciones identificadas en el diseño del convertidor,
+se proponen las siguientes mejoras.
+
+\textbf{Sustitución del diodo por uno Schottky.} El diodo BYC30-600P
+concentra la mayor parte de las pérdidas del convertidor, con
+262~mW de los 379~mW totales, principalmente por conducción.
+Sustituirlo por un diodo Schottky de baja $V_F$ reduciría directamente
+estas pérdidas y mejoraría la eficiencia estimada del 93.4\,\%.
+
+\textbf{Medición de la inductancia real.} Los inductores toroidales
+adquiridos se usaron asumiendo su valor nominal de 100~$\mu$H cada uno,
+sin verificación experimental. En la práctica, la inductancia real puede
+diferir del valor nominal debido a tolerancias del fabricante y efectos
+de saturación a la corriente de operación. Medir la inductancia con un
+analizador de impedancias en el punto de operación permitiría recalcular
+con mayor precisión el límite de CCM y el rizado esperado.
+
+\textbf{Incorporación de resistencias parásitas en el modelo.} El modelo
+promedio linealizado no contempla la resistencia serie del inductor
+($R_{L,esr}$), la resistencia $R_{DS(on)}$ del MOSFET ni la caída directa
+del diodo. Incorporar estos efectos produciría una función de transferencia
+más precisa y reduciría la discrepancia observada entre el modelo ideal
+(24~V exactos) y la implementación física (hasta 840~mV de desviación).
+
+\textbf{Rediseño del lazo de control considerando componentes reales.}
+El controlador PI fue diseñado sobre la planta ideal. Al incorporar las
+resistencias parásitas en el modelo, la ganancia estática y la frecuencia
+natural cambian, por lo que los parámetros $K_p$ y $K_i$ deberían
+reajustarse para mantener los márgenes de estabilidad de
+$PM = 77.65^\circ$ y $GM = 18.8$~dB obtenidos en el diseño original.
 
 %A partir de las limitaciones identificadas y de la experiencia del desarrollo, se proponen las siguientes mejoras agrupadas por área.
 
