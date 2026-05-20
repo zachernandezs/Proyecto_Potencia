@@ -350,7 +350,7 @@ de funcionamiento.
         \bottomrule
     \end{tabularx}
     \vspace{4pt}
-    \caption{Parametros de diseño para el convertidor Boost.}
+    \caption{Parámetros de diseño para el convertidor Boost.}
     \label{tab:parametros_Boost}
 \end{table}
 
@@ -641,6 +641,9 @@ Para el capacitor, considerando la Ecuación \ref{eq:capacitancia_minima_num}, e
 es de 2.67 $\mu$F. Para esta aplicación se seleccionó un capacitor electrolítico de 47 $\mu$F que soporta hasta 50 V, de un valor comercial disponible y que cumple con el requisito mínimo establecido,
 con esto se logra un valor de rizado de tensión en la salida del 0.28 \% aproximadamente (recordando que depende de la carga y del ciclo de trabajo).
 
+Con la frecuencia seleccionada y el valor de inductancia total, la máxima corriente que circula por la bobina según la 
+ecuación \ref{eq:IL_max} es de 0.987 A aproximadamente. 
+
 \subsection{Análisis de pérdidas y eficiencia}
 Este proceso se planteó mediante simulación en PLECS. Para ambos modelos se tomó la información disponible en las hojas de 
 datos de los semiconductores. 
@@ -757,7 +760,8 @@ Y para el caso del diodo, sería:
 
 En ambos casos con una temperatura de juntura que no exceda los 100 $^\circ$C y una temperatura ambiente de 25 $^\circ$C. Se 
 observa que los valores son bastante altos, lo que indica que no es necesario colocar un disipador, situación que se confirmó al momento
-de hacer la implementación física del circuito. Por otro lado, la eficiencia del convertidor en base a lo mencionado, sería: 
+de hacer la implementación física del circuito. Por otro lado, la eficiencia del convertidor según lo mencionado, junto con los resultados
+presentes en la simulación de PLECS, sería: 
 
 \begin{equation}
     \eta = \frac{P_{out}}{P_{in}} = \frac{5.756 - 0.379}{5.756} \cdot 100 = 93.4\%
